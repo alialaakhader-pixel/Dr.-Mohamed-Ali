@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { CellScene3D } from './CellScene3D';
 import { VirtualMicroscope } from './VirtualMicroscope';
+import { GeneticsSimulator } from './GeneticsSimulator';
 import { Microscope, Dna, Leaf, CircleDot, Info, Sparkles, RotateCcw } from 'lucide-react';
 
 type CellKind = 'animal' | 'plant';
@@ -145,6 +146,7 @@ export const LivingBiologyLab: React.FC = () => {
             </div>
             <p className="text-[11px] text-slate-500 mt-4 leading-6">تبسيط تعليمي للمراحل الأساسية؛ تختلف التفاصيل والمسارات باختلاف نوع الخلية والظروف. لا تمثل الرسوم مقياسًا زمنيًا أو جزيئيًا.</p>
           </div>
+          <GeneticsSimulator />
           <VirtualMicroscope />
           <div className="mt-5 flex items-center gap-2 text-xs text-emerald-200/80"><Sparkles className="w-4 h-4"/> تمت إضافة المجهر الافتراضي لفحص نماذج من العينات النباتية والحيوانية.</div>
         </div>
