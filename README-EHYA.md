@@ -30,9 +30,6 @@
 
 تشمل الواجهات وخدماتها: مكتبة المحاضرات ومشغل الفيديو وتتبع المشاهدة، الاختبارات، المدرس الذكي مع الصور، معمل المذاكرة، دفتر الأخطاء، جدول المذاكرة وإشعاراته، الاشتراكات والأكواد، المنتدى، الواجبات، الحصص المباشرة والسبورة، ولوحة تحكم المدرس. يتوقف تشغيل وظائف الخادم على نشر migrations والدوال وضبط الأسرار على مشروع إحياء.
 
-## النشر على GitHub Pages
+## النشر على Vercel
 
-1. ارفع المشروع على مستودع GitHub (الفرع `main`).
-2. من Settings ← Pages اختر Source: **GitHub Actions**.
-3. من Settings ← Secrets and variables ← Actions ← **Variables** أضف: `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY` و`VITE_TEACHER_ACCOUNT_EMAIL`.
-4. أي push على `main` يبني الموقع وينشره تلقائياً على `https://USERNAME.github.io/REPO/`.
+المشروع مربوط بـ Vercel وكل push على `main` ينشر تلقائياً. أضف من Project Settings ← Environment Variables المتغيرات: `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY` و`VITE_TEACHER_ACCOUNT_EMAIL` ثم اعمل Redeploy.
