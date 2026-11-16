@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { CellScene3D } from './CellScene3D';
+import { VirtualMicroscope } from './VirtualMicroscope';
 import { Microscope, Dna, Leaf, CircleDot, Info, Sparkles, RotateCcw } from 'lucide-react';
 
 type CellKind = 'animal' | 'plant';
@@ -73,7 +74,7 @@ export const LivingBiologyLab: React.FC = () => {
           <div className="grid lg:grid-cols-[1.35fr_.8fr] gap-5 items-stretch">
             <div className="lg:col-span-2 space-y-3">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div><h2 className="text-lg font-black text-white">المجسم ثلاثي الأبعاد</h2><p className="text-xs text-slate-400 mt-1">اسحب لتدوير الخلية، واستخدم أزرار التكبير. انقر مرتين على العضية لتحديدها.</p></div>
+                <div><h2 className="text-lg font-black text-white">المجسم ثلاثي الأبعاد</h2><p className="text-xs text-slate-400 mt-1">اسحب لتدوير الخلية، واستخدم أزرار التكبير. انقر على العضية لتحديدها.</p></div>
                 <span className="text-xs text-emerald-300 border border-emerald-400/20 rounded-full px-3 py-1">3D · WebGL</span>
               </div>
               <CellScene3D kind={kind} selected={selected} onSelect={handleSelectPart}/>
@@ -144,7 +145,8 @@ export const LivingBiologyLab: React.FC = () => {
             </div>
             <p className="text-[11px] text-slate-500 mt-4 leading-6">تبسيط تعليمي للمراحل الأساسية؛ تختلف التفاصيل والمسارات باختلاف نوع الخلية والظروف. لا تمثل الرسوم مقياسًا زمنيًا أو جزيئيًا.</p>
           </div>
-          <div className="mt-5 flex items-center gap-2 text-xs text-emerald-200/80"><Sparkles className="w-4 h-4"/> المرحلة التالية: إضافة تكبير وتحريك داخل الخلية ومحاكاة العمليات الحيوية خطوة بخطوة.</div>
+          <VirtualMicroscope />
+          <div className="mt-5 flex items-center gap-2 text-xs text-emerald-200/80"><Sparkles className="w-4 h-4"/> تمت إضافة المجهر الافتراضي لفحص نماذج من العينات النباتية والحيوانية.</div>
         </div>
       </div>
     </section>
