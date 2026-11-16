@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
+import { CellScene3D } from './CellScene3D';
 import { Microscope, Dna, Leaf, CircleDot, Info, Sparkles, RotateCcw } from 'lucide-react';
 
 type CellKind = 'animal' | 'plant';
@@ -27,6 +28,7 @@ export const LivingBiologyLab: React.FC = () => {
   const [showLabels,setShowLabels] = useState(true);
   const parts = useMemo(()=>kind==='animal'?animalParts:plantParts,[kind]);
   const active = parts.find(p=>p.id===selected) || parts[0];
+  const handleSelectPart = useCallback((id:string)=>setSelected(id),[]);
 
   const chooseKind=(next:CellKind)=>{setKind(next);setSelected('nucleus');};
 
@@ -48,6 +50,13 @@ export const LivingBiologyLab: React.FC = () => {
           </div>
 
           <div className="grid lg:grid-cols-[1.35fr_.8fr] gap-5 items-stretch">
+            <div className="lg:col-span-2 space-y-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div><h2 className="text-lg font-black text-white">المجسم ثلاثي الأبعاد</h2><p className="text-xs text-slate-400 mt-1">اسحب لتدوير الخلية، واستخدم أزرار التكبير. انقر مرتين على العضية لتحديدها.</p></div>
+                <span className="text-xs text-emerald-300 border border-emerald-400/20 rounded-full px-3 py-1">3D · WebGL</span>
+              </div>
+              <CellScene3D kind={kind} selected={selected} onSelect={handleSelectPart}/>
+            </div>
             <div className="relative rounded-3xl border border-slate-700/70 bg-[#061a1b] p-3 sm:p-5 min-h-[330px] flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 opacity-20" style={{backgroundImage:'radial-gradient(rgba(110,231,183,.45) 1px,transparent 1px)',backgroundSize:'22px 22px'}}/>
               <svg viewBox="0 0 100 100" className="relative w-full max-w-[540px] h-auto drop-shadow-2xl" role="img" aria-label={kind==='animal'?'رسم تفاعلي لخلية حيوانية':'رسم تفاعلي لخلية نباتية'}>
