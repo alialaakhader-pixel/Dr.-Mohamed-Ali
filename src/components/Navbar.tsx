@@ -115,6 +115,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              onClick={() => handleNavClick('lab')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'lab' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20' : 'text-slate-300 hover:text-white hover:bg-slate-700/50'}`}
+            >
+              <Dna className="w-4 h-4" />
+              <span>مختبر الأحياء</span>
+            </button>
+
+            <button
               onClick={() => handleNavClick('forum')}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${
                 activeTab === 'forum'
@@ -347,6 +355,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <BookOpen className="w-4 h-4" />
             <span>الدروس والفيديوهات</span>
+          </button>
+
+          <button
+            onClick={() => handleNavClick('lab')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-right ${activeTab === 'lab' ? 'bg-emerald-500 text-slate-950' : 'text-slate-300 hover:bg-slate-800'}`}
+          >
+            <Dna className="w-4 h-4" />
+            <span>مختبر الأحياء</span>
           </button>
 
           <button
