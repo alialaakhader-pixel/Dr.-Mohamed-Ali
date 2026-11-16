@@ -1061,3 +1061,10 @@ export async function teacherLiveRecording(cls: string, url: string, until: stri
   if (!r?.ok) throw new Error('رابط التسجيل لازم يبدأ بـ https://');
 }
 export const teacherLiveAttendance = async (cls: string): Promise<LiveAttendanceRow[]> => { const r = await tr('ha_teacher_live_attendance', { p_class: cls }); return Array.isArray(r) ? r : []; };
+
+
+export async function generateAiPoster(prompt: string, referenceImage = ''): Promise<{ok:boolean; image?:string; error?:string}> {
+  const token = await teacherToken();
+  if (!token) throw new Error('سجّل دخول المدرس أولاً.');
+  return http('/functions/v1/ha-image-studio', { method: 'POST', token, body: { prompt, referenceImage } });
+}
