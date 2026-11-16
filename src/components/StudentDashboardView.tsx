@@ -152,13 +152,13 @@ export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
             {currentStudent && (
               <button
                 type="button"
-                onClick={() => { try { navigator.clipboard?.writeText(currentStudent.codeUsed); setIdCopied(true); setTimeout(() => setIdCopied(false), 1800); } catch { /* ignore */ } }}
+                onClick={() => { try { navigator.clipboard?.writeText(String(currentStudent.accountId ?? currentStudent.codeUsed)); setIdCopied(true); setTimeout(() => setIdCopied(false), 1800); } catch { /* ignore */ } }}
                 className="mt-3 inline-flex items-center gap-2.5 rounded-xl bg-slate-950/60 border border-emerald-500/40 px-3.5 py-2 hover:bg-slate-950/80 transition"
                 title="اضغط لنسخ الـID"
               >
                 <KeyRound className="w-4 h-4 text-emerald-400" />
-                <span className="text-[11px] font-bold text-slate-400">ID الطالب</span>
-                <span dir="ltr" className="font-mono font-black text-base tracking-wider text-emerald-300">{currentStudent.codeUsed}</span>
+                <span className="text-[11px] font-bold text-slate-400">{currentStudent.accountId != null ? "ID الحساب" : "كود الطالب"}</span>
+                <span dir="ltr" className="font-mono font-black text-base tracking-wider text-emerald-300">{currentStudent.accountId != null ? currentStudent.accountId : currentStudent.codeUsed}</span>
                 <span className="text-[10px] font-bold text-slate-500">{idCopied ? 'تم النسخ ✓' : 'نسخ'}</span>
               </button>
             )}
