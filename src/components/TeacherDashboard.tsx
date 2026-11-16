@@ -319,7 +319,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       c.createdAt,
       c.note || ''
     ]);
-    exportToCsv(headers, rows, `أكواد_طلاب_إحياء_الدكتور_محمد_علي_${new Date().toISOString().split('T')[0]}`);
+    exportToCsv(headers, rows, `أكواد_طلاب_أحياء_الدكتور_محمد_علي_${new Date().toISOString().split('T')[0]}`);
   };
 
   const handleExportStudentsCsv = () => {
@@ -338,7 +338,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       s.status === 'online' ? 'متصل الآن' : 'غير متصل',
       s.completedLessonIds.length
     ]);
-    exportToCsv(headers, rows, `سجل_طلاب_إحياء_الدكتور_محمد_علي_${new Date().toISOString().split('T')[0]}`);
+    exportToCsv(headers, rows, `سجل_طلاب_أحياء_الدكتور_محمد_علي_${new Date().toISOString().split('T')[0]}`);
   };
 
   const copyToClipboard = (text: string) => {
