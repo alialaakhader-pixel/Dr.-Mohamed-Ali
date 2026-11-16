@@ -8,6 +8,7 @@ import { TeacherGate } from './components/TeacherGate';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { StudentLoginModal } from './components/StudentLoginModal';
 import { GlassBiologyBackground } from './components/GlassBiologyBackground';
+import { LivingBiologyLab } from './components/LivingBiologyLab';
 import { ExamsView } from './components/ExamsView';
 import { LearningCenterView } from './components/LearningCenterView';
 import { SubscriptionsView } from './components/SubscriptionsView';
@@ -268,7 +269,7 @@ export default function App() {
     } else {
       clearStudentData();
       setActiveTab('dashboard');
-      setLiveToast(`أهلاً ${me.name}! ابعت الـ ID بتاعك (${me.id}) للمهندس محمد علي لتفعيل حسابك.`);
+      setLiveToast(`أهلاً ${me.name}! ابعت الـ ID بتاعك (${me.id}) للدكتور محمد علي لتفعيل حسابك.`);
     }
   };
 
@@ -341,7 +342,7 @@ export default function App() {
   const handleTeacherUnlock = async () => {
     setIsTeacherAuth(true);
     try { await loadTeacher(); } catch (e) { fail(e); }
-    setLiveToast('أهلاً بك يا مهندس محمد علي! تم تسجيل الدخول بنجاح إلى لوحة التحكم.');
+    setLiveToast('أهلاً بك يا دكتور محمد علي! تم تسجيل الدخول بنجاح إلى لوحة التحكم.');
   };
 
   const handleTeacherLogout = () => {
@@ -458,7 +459,7 @@ export default function App() {
   };
 
   const blocked = !!currentStudent && !!accountInfo && !accountInfo.hasAccess && !isTeacherAuth;
-  const gatedTabs = ['lessons', 'forum', 'exams', 'dashboard', 'learn'];
+  const gatedTabs = ['lessons', 'forum', 'exams', 'dashboard', 'learn', 'lab'];
 
   const activeLesson = lessons.find(l => l.id === selectedLessonId) || (lessons.length > 0 ? lessons[0] : null);
 
@@ -523,6 +524,8 @@ export default function App() {
             onLogout={handleLogoutStudent}
           />
         )}
+
+        {activeTab === 'lab' && !blocked && <LivingBiologyLab />}
 
         {activeTab === 'exams' && !blocked && (
           <ExamsView
@@ -658,14 +661,14 @@ export default function App() {
             <span className="font-display font-black text-white text-sm block">
               منصة الدكتور محمد علي للأحياء © 2026
             </span>
-            <p>الثانوية العامة والأزهر والبكالوريا · شرح هندسي وفهم فيزيائي متكامل</p>
+            <p>الثانوية العامة والأزهر والبكالوريا · افهم أسرار الحياة واكتشف عالم الأحياء</p>
             <a
-              href="tel:+201221179530"
+              href="tel:+201026817037"
               className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20 transition font-bold"
             >
               <PhoneCall className="w-4 h-4" />
-              <span>رقم الطوارئ:</span>
-              <span dir="ltr" className="font-mono tracking-wider">012 21179530</span>
+              <span>للتواصل:</span>
+              <span dir="ltr" className="font-mono tracking-wider">+20 10 26817037</span>
             </a>
           </div>
 
