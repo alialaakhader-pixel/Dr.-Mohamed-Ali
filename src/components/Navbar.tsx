@@ -80,7 +80,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   الدكتور محمد علي
                 </span>
                 <span className="hidden sm:inline text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">
-                  إحياء
+                  أحياء
                 </span>
               </div>
               <p className="hidden sm:block text-xs text-slate-400 font-medium">
