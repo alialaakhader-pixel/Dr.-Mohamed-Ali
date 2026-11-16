@@ -12,9 +12,11 @@ const reply = (status: number, body: Record<string, unknown>) => new Response(JS
 
 const SB = Deno.env.get("SUPABASE_URL") ?? "";
 const ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-const LK_URL = (Deno.env.get("LIVEKIT_URL") ?? "").trim();
-const LK_KEY = (Deno.env.get("LIVEKIT_API_KEY") ?? "").trim();
-const LK_SECRET = (Deno.env.get("LIVEKIT_API_SECRET") ?? "").trim();
+// Accept the standard names and the legacy names already stored as secrets (incl. the "apiscret" spelling).
+const envAny = (...names: string[]) => { for (const n of names) { const v = (Deno.env.get(n) ?? "").trim(); if (v) return v; } return ""; };
+const LK_URL = envAny("LIVEKIT_URL", "LIV3-KIT-WSSURL", "livekit-url", "LIVEKIT_WSS_URL");
+const LK_KEY = envAny("LIVEKIT_API_KEY", "livekit-apikey");
+const LK_SECRET = envAny("LIVEKIT_API_SECRET", "livekit-apiscret", "livekit-apisecret");
 
 const enc = new TextEncoder();
 const b64u = (b: ArrayBuffer | Uint8Array | string) => {
