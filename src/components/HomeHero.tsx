@@ -318,7 +318,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
             </div>
             <h4 className="font-bold text-base text-white">بوابة المدرس الخاصة</h4>
             <p className="text-xs text-slate-400 leading-relaxed">
-              قسم خاص ومحمي للمهندس محمد علي لرفع الفيديوهات والشروحات وتوليد الأكواد وإدارة الطلاب.
+              قسم خاص ومحمي للدكتور محمد علي لرفع الفيديوهات والشروحات وتوليد الأكواد وإدارة الطلاب.
             </p>
           </div>
 
