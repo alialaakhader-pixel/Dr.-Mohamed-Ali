@@ -48,7 +48,7 @@ export const GradesShowcase: React.FC<GradesShowcaseProps> = ({ onPick }) => {
                     <path d="M50 100 Q120 40 190 100 M50 145 Q120 205 190 145" fill="none" stroke="#a7f3d0" strokeWidth="3" strokeDasharray="5 8"/>
                     {[[77,72],[174,75],[76,165],[174,165],[120,45],[195,120],[45,120]].map(([x,y],i)=><circle key={i} cx={x} cy={y} r="7" fill="#6ee7b7"/>)}
                   </svg>
-                  <span className="absolute bottom-4 text-xs font-black text-emerald-100">إحياء · {g.short}</span>
+                  <span className="absolute bottom-4 text-xs font-black text-emerald-100">أحياء · {g.short}</span>
                 </div>
                 {/* glass reflection over the photo */}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-60" />
