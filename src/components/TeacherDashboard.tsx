@@ -36,6 +36,7 @@ import { TeacherInsightsPanel } from './TeacherInsightsPanel';
 import { TeacherSubscriptionsPanel } from './TeacherSubscriptionsPanel';
 import { TeacherMessagesPanel } from './TeacherMessagesPanel';
 import { LessonPosterStudio } from './LessonPoster';
+import { AiImageStudio } from './AiImageStudio';
 import { TeacherLivePanel } from './TeacherLivePanel';
 import { TeacherMistakesPanel } from './TeacherMistakesPanel';
 import { generateRandomCode } from '../services/store';
@@ -91,7 +92,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   onDeleteExam,
   onDeleteExamResult
 }) => {
-  const [activeTab, setActiveTab] = useState<'upload' | 'codes' | 'students' | 'forum' | 'lessons' | 'accounts' | 'exams' | 'assignments' | 'insights' | 'subscriptions' | 'live' | 'messages' | 'posters'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'codes' | 'students' | 'forum' | 'lessons' | 'accounts' | 'exams' | 'assignments' | 'insights' | 'subscriptions' | 'live' | 'messages' | 'posters' | 'ai-design'>('upload');
   
   // ---- 1. Upload Lesson State (Fully custom inputs as requested) ----
   const [title, setTitle] = useState('');
@@ -534,6 +535,17 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         >
           <Award className="w-4 h-4" />
           <span>بوسترات الدروس 🎨</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('ai-design')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-bold transition-all ${
+            activeTab === 'ai-design'
+              ? 'bg-emerald-500 text-slate-950 shadow-md font-black shadow-emerald-500/20'
+              : 'bg-slate-800/70 text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700/60'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>مصمم الصور بالذكاء الاصطناعي ✨</span>
         </button>
         <button
           onClick={() => setActiveTab('live')}
@@ -1032,6 +1044,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       {activeTab === 'live' && <TeacherLivePanel lessons={lessons} />}
       {activeTab === 'messages' && <TeacherMessagesPanel />}
       {activeTab === 'posters' && <LessonPosterStudio />}
+      {activeTab === 'ai-design' && <AiImageStudio />}
 
       {activeTab === 'exams' && (
         <TeacherExamsPanel
