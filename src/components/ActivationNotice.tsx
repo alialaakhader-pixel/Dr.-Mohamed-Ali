@@ -39,8 +39,8 @@ export const ActivationNotice: React.FC<ActivationNoticeProps> = ({ info, name, 
         </h2>
         <p className="text-sm text-slate-400 mt-2 leading-relaxed">
           أهلاً {name}! {expired
-            ? 'انتهت مدة اشتراكك. ابعت الـ ID بتاعك للمهندس محمد علي لتجديده.'
-            : 'ابعت الـ ID بتاعك للمهندس محمد علي عشان يفتحلك المنصة.'}
+            ? 'انتهت مدة اشتراكك. ابعت الـ ID بتاعك للدكتور محمد علي لتجديده.'
+            : 'ابعت الـ ID بتاعك للدكتور محمد علي عشان يفتحلك المنصة.'}
         </p>
 
         <div className="my-6 bg-slate-800/80 border border-slate-700 rounded-2xl p-4">
