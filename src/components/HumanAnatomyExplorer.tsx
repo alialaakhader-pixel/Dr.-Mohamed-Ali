@@ -39,6 +39,32 @@ const material=(color:number,opacity=1)=>new THREE.MeshStandardMaterial({color,r
 const ellipsoid=(parent:THREE.Group,pos:[number,number,number],scale:[number,number,number],color:number,opacity=1)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,24,18),material(color,opacity));m.position.set(...pos);m.scale.set(...scale);parent.add(m);return m;};
 const bone=(g:THREE.Group,a:[number,number,number],b:[number,number,number],r=.05)=>{const va=new THREE.Vector3(...a),vb=new THREE.Vector3(...b),d=vb.clone().sub(va);const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),9),material(0xe7dfc8));m.position.copy(va).add(vb).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());g.add(m);};
 const buildSkeleton=(g:THREE.Group,sex:Sex)=>{ellipsoid(g,[0,3.12,0],[.39,.4,.34],0xe7dfc8);ellipsoid(g,[0,2.88,.12],[.25,.12,.25],0xd6cdb8);for(let i=0;i<12;i++)ellipsoid(g,[0,2.48-i*.16,0],[.09,.07,.09],0xe7dfc8);bone(g,[-.55,2.18,0],[0,2.12,.02]);bone(g,[0,2.12,.02],[.55,2.18,0]);bone(g,[0,2.12,.08],[0,1.15,.08],.06);for(let i=0;i<7;i++){const y=2.02-i*.125,w=.42+i*.025;bone(g,[0,y,.02],[-w,y-.1,.04],.027);bone(g,[-w,y-.1,.04],[-w*.95,y-.19,.02],.027);bone(g,[0,y,.02],[w,y-.1,.04],.027);bone(g,[w,y-.1,.04],[w*.95,y-.19,.02],.027);}const pelvisWidth=sex==='female'?.56:.43;bone(g,[-pelvisWidth,-.42,0],[-.30,-.70,.02],.075);bone(g,[-.30,-.70,.02],[0,-.61,.04],.075);bone(g,[pelvisWidth,-.42,0],[.30,-.70,.02],.075);bone(g,[.30,-.70,.02],[0,-.61,.04],.075);for(const s of [-1,1]){bone(g,[s*.55,2.16,0],[s*.79,1.55,0],.06);bone(g,[s*.79,1.55,0],[s*.88,.9,.02],.05);bone(g,[s*.88,.9,.02],[s*.9,.55,.03],.035);for(let f=-2;f<=2;f++)bone(g,[s*.9+f*.045,.55,.03],[s*.9+f*.065,.32-Math.abs(f)*.025,.04],.018);bone(g,[s*.28,-.62,0],[s*.34,-1.42,0],.085);bone(g,[s*.34,-1.42,0],[s*.34,-2.2,.02],.06);bone(g,[s*.34,-2.2,.02],[s*.34,-2.52,.18],.04);}};
+
+const anatomicalGeometry=(id:string):THREE.BufferGeometry=>{
+ if(id==='heart'){
+  const s=new THREE.Shape();s.moveTo(0,-.75);s.bezierCurveTo(-.25,-.45,-.95,.05,-.85,.55);s.bezierCurveTo(-.78,1.05,-.18,1.02,0,.58);s.bezierCurveTo(.22,1.03,.82,1.05,.88,.53);s.bezierCurveTo(.98,.02,.28,-.48,0,-.75);
+  return new THREE.ExtrudeGeometry(s,{depth:.28,bevelEnabled:true,bevelSegments:4,steps:1,bevelSize:.09,bevelThickness:.08,curveSegments:20});
+ }
+ if(id==='intestines'){
+  const pts:THREE.Vector3[]=[];for(let i=0;i<180;i++){const t=i/179,angle=t*Math.PI*12,r=.62-.22*t;pts.push(new THREE.Vector3(Math.cos(angle)*r,Math.sin(angle)*r*.78,0));}
+  const curve=new THREE.CatmullRomCurve3(pts);return new THREE.TubeGeometry(curve,240,.09,10,false);
+ }
+ if(id==='stomach'){
+  const points=[new THREE.Vector2(.08,-.9),new THREE.Vector2(.35,-.72),new THREE.Vector2(.56,-.35),new THREE.Vector2(.48,.05),new THREE.Vector2(.3,.35),new THREE.Vector2(.18,.72),new THREE.Vector2(.08,.9)];
+  return new THREE.LatheGeometry(points,32);
+ }
+ const g=new THREE.SphereGeometry(1,48,36),p=g.attributes.position as THREE.BufferAttribute;
+ for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i),factor=1;
+  if(id==='brain'){factor+=.035*Math.sin(y*34+Math.atan2(z,x)*5)*Math.sin(x*22); }
+  if(id==='lungs'){factor*=1-.18*Math.exp(-Math.pow(x*5,2));}
+  if(id==='liver'){factor*=1-.13*Math.max(0,-y)*Math.max(0,x);}
+  if(id==='kidneys'){factor*=1-.18*Math.exp(-Math.pow((x+.35)*7,2))*Math.max(0,z);}
+  if(id==='bladder'){factor*=1+.08*Math.cos(y*8);}
+  p.setXYZ(i,x*factor,y*factor,z*factor);
+ }
+ p.needsUpdate=true;g.computeVertexNormals();return g;
+};
+
 export const HumanAnatomyExplorer:React.FC=()=>{
  const host=useRef<HTMLDivElement>(null),selectedRef=useRef('heart'),onSelectRef=useRef<(id:string)=>void>(()=>{});
  const [sex,setSex]=useState<Sex>('male'),[view,setView]=useState<ViewMode>('all'),[selected,setSelected]=useState('heart'),[system,setSystem]=useState('كل الأعضاء'),[showSkeleton,setShowSkeleton]=useState(true),[showBody,setShowBody]=useState(true),[zoom,setZoom]=useState(1),[reset,setReset]=useState(0);
@@ -58,7 +84,7 @@ export const HumanAnatomyExplorer:React.FC=()=>{
  ellipsoid(body,[0,3.1,-.08],[.48,.48,.38],0x6db9b1,.15);
  for(const s of [-1,1]){ellipsoid(body,[s*(sex==='male'?.94:.87),1.5,-.12],[.2,.95,.22],0x6db9b1,.13);ellipsoid(body,[s*(sex==='male'?.36:.31),-1.38,-.12],[.22,1.12,.24],0x6db9b1,.13);}
  const organGroup=new THREE.Group();root.add(organGroup);const meshes:THREE.Mesh[]=[];
- parts.filter(p=>p.kind==='internal').forEach(p=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,28,20),new THREE.MeshPhysicalMaterial({color:p.color,roughness:.4,clearcoat:.2}));m.position.set(...p.position);m.scale.set(...p.scale);m.userData.organId=p.id;organGroup.add(m);meshes.push(m);});
+ parts.filter(p=>p.kind==='internal').forEach(p=>{const m=new THREE.Mesh(anatomicalGeometry(p.id),new THREE.MeshPhysicalMaterial({color:p.color,roughness:.4,clearcoat:.2}));m.position.set(...p.position);m.scale.set(...p.scale);m.userData.organId=p.id;organGroup.add(m);meshes.push(m);});
  const externalGroup=new THREE.Group();root.add(externalGroup);
  const externalMeshes:THREE.Mesh[]=[];
  parts.filter(p=>p.kind==='external').forEach(p=>{const m=ellipsoid(externalGroup,p.position,p.scale,p.color,.92);m.userData.organId=p.id;externalMeshes.push(m);});
