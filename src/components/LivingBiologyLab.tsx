@@ -3,6 +3,19 @@ import { CellScene3D } from './CellScene3D';
 import { Microscope, Dna, Leaf, CircleDot, Info, Sparkles, RotateCcw } from 'lucide-react';
 
 type CellKind = 'animal' | 'plant';
+type ProcessKind = 'photosynthesis' | 'respiration';
+const processStages = {
+  photosynthesis: [
+    {title:'امتصاص الضوء',where:'أغشية الثايلاكويد داخل البلاستيدة الخضراء',detail:'تمتص أصباغ البناء الضوئي، ومنها الكلوروفيل، طاقة الضوء لبدء التفاعلات الضوئية.'},
+    {title:'تحويل الطاقة',where:'أغشية الثايلاكويد',detail:'تتحول الطاقة الضوئية إلى طاقة كيميائية في صورة ATP وNADPH، وينطلق الأكسجين من شطر الماء.'},
+    {title:'تثبيت الكربون',where:'الستروما',detail:'تُستخدم ATP وNADPH في تفاعلات دورة كالفن لتثبيت CO₂ وتكوين مركبات كربوهيدراتية.'}
+  ],
+  respiration: [
+    {title:'التحلل السكري',where:'السيتوسول',detail:'ينقسم الجلوكوز إلى جزيئين من البيروفات، مع تكوين قدر قليل من ATP واختزال NAD⁺.'},
+    {title:'أكسدة البيروفات ودورة كربس',where:'مصفوفة الميتوكوندريا في الخلايا حقيقية النواة',detail:'تكتمل أكسدة نواتج الجلوكوز، وينطلق CO₂ وتتكون نواقل إلكترونات مختزلة.'},
+    {title:'سلسلة نقل الإلكترون',where:'الغشاء الداخلي للميتوكوندريا',detail:'تنتقل الإلكترونات عبر بروتينات السلسلة، ويساعد تدرج البروتونات إنزيم ATP synthase على إنتاج معظم ATP في التنفس الهوائي.'}
+  ]
+};
 type Part = { id:string; name:string; en:string; role:string; x:number; y:number; rx:number; ry:number; color:string };
 
 const animalParts: Part[] = [
@@ -26,6 +39,14 @@ export const LivingBiologyLab: React.FC = () => {
   const [kind,setKind] = useState<CellKind>('animal');
   const [selected,setSelected] = useState('nucleus');
   const [showLabels,setShowLabels] = useState(true);
+  const [process,setProcess] = useState<ProcessKind>('photosynthesis');
+  const [stage,setStage] = useState(0);
+  const [scenario,setScenario] = useState('light');
+  const scenarios = {
+    light:{q:'ماذا يحدث عند غياب الضوء؟',a:'تتوقف التفاعلات الضوئية، فلا يتجدد ATP وNADPH اللازمان لاستمرار دورة كالفن بالمعدل المعتاد.'},
+    water:{q:'ماذا يحدث عند نقص الماء؟',a:'تقل إتاحة الإلكترونات والبروتونات للتفاعلات الضوئية، وقد تُغلق الثغور لتقليل فقد الماء فينخفض دخول CO₂.'},
+    oxygen:{q:'ماذا يحدث عند نقص الأكسجين؟',a:'يتأثر التنفس الهوائي وسلسلة نقل الإلكترون، وقد تلجأ بعض الخلايا إلى مسارات لا هوائية لتجديد +NAD.'}
+  } as const;
   const parts = useMemo(()=>kind==='animal'?animalParts:plantParts,[kind]);
   const active = parts.find(p=>p.id===selected) || parts[0];
   const handleSelectPart = useCallback((id:string)=>setSelected(id),[]);
@@ -93,6 +114,35 @@ export const LivingBiologyLab: React.FC = () => {
                 <div className="flex items-start gap-2 text-xs leading-6 text-slate-500 border-t border-slate-800 pt-4"><Info className="w-4 h-4 mt-1 shrink-0 text-emerald-400"/>نموذج تعليمي توضيحي مبسط، وليس مقياسًا حقيقيًا لأحجام العضيات أو مواقعها. راجع شرح الدكتور ومراجع المنهج للتفاصيل الدقيقة.</div>
               </div>
             </aside>
+          </div>
+          <div className="mt-7 rounded-3xl border border-cyan-400/20 bg-slate-900/80 p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div><div className="text-xs font-bold text-cyan-300 mb-1">محاكاة العمليات الحيوية</div><h2 className="text-xl font-black text-white">رحلة الطاقة داخل الخلية</h2></div>
+              <div className="flex gap-2">
+                <button onClick={()=>{setProcess('photosynthesis');setStage(0);}} className={`rounded-xl px-3 py-2 text-xs font-bold border ${process==='photosynthesis'?'bg-emerald-500 text-slate-950 border-emerald-400':'bg-slate-950 text-slate-300 border-slate-700'}`}>البناء الضوئي</button>
+                <button onClick={()=>{setProcess('respiration');setStage(0);}} className={`rounded-xl px-3 py-2 text-xs font-bold border ${process==='respiration'?'bg-emerald-500 text-slate-950 border-emerald-400':'bg-slate-950 text-slate-300 border-slate-700'}`}>التنفس الخلوي</button>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-2 mb-4">
+              {processStages[process].map((s,i)=><button key={s.title} onClick={()=>setStage(i)} className={`text-right rounded-xl border p-3 transition ${stage===i?'border-cyan-300 bg-cyan-400/10':'border-slate-700 bg-slate-950/60'}`}><span className="block text-[10px] text-slate-400 mb-1">المرحلة {i+1}</span><span className="text-sm font-bold text-white">{s.title}</span></button>)}
+            </div>
+            <div className="rounded-2xl bg-[#071f24] border border-slate-700 p-4">
+              <div className="text-xs text-cyan-300 font-bold mb-2">أين تحدث؟ · {processStages[process][stage].where}</div>
+              <h3 className="font-black text-white text-lg mb-2">{processStages[process][stage].title}</h3>
+              <p className="text-sm leading-7 text-slate-300">{processStages[process][stage].detail}</p>
+              <div className="flex justify-between mt-4">
+                <button disabled={stage===0} onClick={()=>setStage(s=>Math.max(0,s-1))} className="rounded-lg px-4 py-2 text-xs font-bold bg-slate-800 text-white disabled:opacity-40">السابق</button>
+                <button disabled={stage===2} onClick={()=>setStage(s=>Math.min(2,s+1))} className="rounded-lg px-4 py-2 text-xs font-bold bg-emerald-500 text-slate-950 disabled:opacity-40">التالي</button>
+              </div>
+            </div>
+            <div className="mt-5 border-t border-slate-700 pt-5">
+              <h3 className="font-black text-white mb-3">ماذا يحدث لو؟</h3>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {Object.entries(scenarios).map(([key,item])=><button key={key} onClick={()=>setScenario(key)} className={`rounded-full px-3 py-2 text-xs border ${scenario===key?'border-amber-300 bg-amber-300/10 text-amber-200':'border-slate-700 text-slate-300'}`}>{item.q}</button>)}
+              </div>
+              <p className="rounded-xl bg-amber-300/10 border border-amber-300/20 p-3 text-sm leading-7 text-amber-100">{scenarios[scenario as keyof typeof scenarios].a}</p>
+            </div>
+            <p className="text-[11px] text-slate-500 mt-4 leading-6">تبسيط تعليمي للمراحل الأساسية؛ تختلف التفاصيل والمسارات باختلاف نوع الخلية والظروف. لا تمثل الرسوم مقياسًا زمنيًا أو جزيئيًا.</p>
           </div>
           <div className="mt-5 flex items-center gap-2 text-xs text-emerald-200/80"><Sparkles className="w-4 h-4"/> المرحلة التالية: إضافة تكبير وتحريك داخل الخلية ومحاكاة العمليات الحيوية خطوة بخطوة.</div>
         </div>
