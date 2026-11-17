@@ -26,7 +26,7 @@ import {
   Download
 } from 'lucide-react';
 import { resolveVideoSource } from '../utils/video';
-import { Lesson, StudentCode, StudentUser, ForumPost, GradeType, LessonAttachmentItem, Account, Exam, ExamResultRow, LessonLaw } from '../types';
+import { Lesson, StudentCode, StudentUser, ForumPost, GradeType, SubjectType, LessonAttachmentItem, Account, Exam, ExamResultRow, LessonLaw } from '../types';
 import { LawsEditor } from './LawsEditor';
 import { isLawValid } from '../utils/laws';
 import { TeacherAccountsPanel } from './TeacherAccountsPanel';
@@ -97,6 +97,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   // ---- 1. Upload Lesson State (Fully custom inputs as requested) ----
   const [title, setTitle] = useState('');
   const [grade, setGrade] = useState<GradeType>('3ث');
+  const [subject, setSubject] = useState<SubjectType>('biology');
   const [chapter, setChapter] = useState('');
   const [unit, setUnit] = useState('');
   const [duration, setDuration] = useState('45 دقيقة');
@@ -246,6 +247,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         id: 'lesson-' + Date.now(),
         title: title.trim(),
         grade: grade,
+        subject,
         chapter: chapter.trim(),
         unit: unit.trim() || title.trim(),
         duration: duration.trim() || '45 دقيقة',
@@ -269,6 +271,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
       // Reset form fields
       setTitle('');
+      setSubject(grade === 'بكالوريا' ? 'integrated_science' : 'biology');
       setChapter('');
       setUnit('');
       setDescription('');
@@ -663,7 +666,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
               </div>
 
               {/* 2. Chapter / Section + Grade + Duration */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">
                     الفصل / الباب <span className="text-emerald-500">*</span>
@@ -695,13 +698,31 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">الصف الدراسي</label>
                   <select
                     value={grade}
-                    onChange={e => setGrade(e.target.value as GradeType)}
+                    onChange={e => {
+                      const nextGrade = e.target.value as GradeType;
+                      setGrade(nextGrade);
+                      setSubject(nextGrade === 'بكالوريا' ? 'integrated_science' : 'biology');
+                    }}
                     className="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
                   >
                     <option value="3ث">تالتة ثانوي عام / أزهر</option>
                     <option value="2ث">تانية ثانوي عام / أزهر</option>
                     <option value="1ث">أولى ثانوي عام</option>
-                    <option value="بكالوريا">بكالوريا وتوجيهي</option>
+                    <option value="بكالوريا">أولى بكالوريا</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">المادة</label>
+                  <select
+                    value={subject}
+                    onChange={e => setSubject(e.target.value as SubjectType)}
+                    className="w-full bg-slate-800/90 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                  >
+                    {grade === '3ث' ? <>
+                      <option value="biology">الأحياء</option>
+                      <option value="geology">الجيولوجيا</option>
+                    </> : grade === 'بكالوريا' ? <option value="integrated_science">العلوم المتكاملة</option> : <option value="biology">الأحياء</option>}
                   </select>
                 </div>
               </div>
@@ -1115,6 +1136,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   <option value="3ث">تالتة ثانوي (3ث)</option>
                   <option value="2ث">تانية ثانوي (2ث)</option>
                   <option value="1ث">أولى ثانوي (1ث)</option>
+                  <option value="بكالوريا">أولى بكالوريا</option>
                   <option value="جميع الصفوف">جميع الصفوف</option>
                 </select>
               </div>
