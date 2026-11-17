@@ -391,7 +391,7 @@ export async function saveStudentProgress(student: StudentUser) {
 // Exams (graded on the server)
 // ---------------------------------------------------------------------------
 const EXAM_ERRORS: Record<string, string> = {
-  ALREADY_TAKEN: 'سبق وأديت هذا الامتحان. لو محتاج محاولة جديدة تواصل مع المدرس.',
+  ALREADY_TAKEN: 'أنت اجتزت هذا الامتحان بالفعل، وتم فتح متطلبات المحاضرة التالية عند استيفاء الواجب.',
   NOT_FOUND: 'هذا الامتحان غير متاح لك.',
   UNAUTHORIZED: 'انتهت صلاحية الدخول أو الاشتراك. سجّل دخولك من جديد.',
   EMPTY_EXAM: 'هذا الامتحان لا يحتوي على أسئلة.',
