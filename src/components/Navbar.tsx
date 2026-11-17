@@ -111,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <BookOpen className="w-4 h-4" />
-              <span>الدروس والفيديوهات</span>
+              <span>محاضرات</span>
             </button>
 
             <button
