@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, ClipboardList, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, ClipboardList, ChevronDown, ChevronUp, RotateCcw, ImagePlus, X } from 'lucide-react';
 import { Exam, ExamQuestion, ExamResultRow, GradeType, StudentUser } from '../types';
 
 interface Props {
@@ -13,8 +13,25 @@ interface Props {
 
 const LETTERS = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
 
-interface DraftQ { question: string; options: string[]; correctIndex: number; explanation: string }
-const newQ = (): DraftQ => ({ question: '', options: ['', '', '', ''], correctIndex: 0, explanation: '' });
+interface DraftQ { question: string; options: string[]; correctIndex: number; explanation: string; image?: string }
+const newQ = (): DraftQ => ({ question: '', options: ['', '', '', ''], correctIndex: 0, explanation: '', image: '' });
+
+async function compressQuestionImage(file: File): Promise<string> {
+  if (!file.type.startsWith('image/')) throw new Error('اختار ملف صورة صالح.');
+  if (file.size > 8 * 1024 * 1024) throw new Error('حجم الصورة الأصلي يجب ألا يتجاوز 8 ميجابايت.');
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { bitmap.close(); throw new Error('تعذر تجهيز الصورة على هذا الجهاز.'); }
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const data = canvas.toDataURL('image/jpeg', 0.76);
+  if (data.length > 650_000) throw new Error('الصورة ما زالت كبيرة؛ اختار صورة أصغر.');
+  return data;
+}
 
 const inp = 'w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500';
 
@@ -52,7 +69,8 @@ export const TeacherExamsPanel: React.FC<Props> = ({ exams, results, students, o
         question: q.question.trim(),
         options: keep.map(x => x.o),
         correctIndex: keep.findIndex(x => x.k === q.correctIndex),
-        explanation: q.explanation.trim()
+        explanation: q.explanation.trim(),
+        ...(q.image ? { image: q.image } : {})
       });
     }
     setBusy(true);
@@ -102,6 +120,32 @@ export const TeacherExamsPanel: React.FC<Props> = ({ exams, results, students, o
               )}
             </div>
             <textarea className={inp + ' min-h-[64px]'} placeholder="نص السؤال" value={q.question} onChange={e => setQ(i, { question: e.target.value })} />
+            <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2">
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-300 hover:text-emerald-200">
+                <ImagePlus className="w-4 h-4" /> {q.image ? 'تغيير صورة السؤال' : 'إضافة صورة للسؤال'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    e.currentTarget.value = '';
+                    if (!file) return;
+                    try { setQ(i, { image: await compressQuestionImage(file) }); }
+                    catch (err: any) { setMsg('⚠️ ' + (err?.message || 'تعذر تحميل الصورة.')); }
+                  }}
+                />
+              </label>
+              {q.image && (
+                <div className="relative inline-block max-w-full">
+                  <img src={q.image} alt={`صورة السؤال ${i + 1}`} className="max-h-52 max-w-full rounded-lg border border-slate-600 object-contain bg-slate-950" />
+                  <button type="button" onClick={() => setQ(i, { image: '' })} className="absolute -top-2 -left-2 rounded-full bg-red-500 text-white p-1" title="حذف الصورة">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+              <p className="text-[10px] text-slate-500">صورة واحدة لكل سؤال · تُضغط تلقائياً لتقليل الحجم</p>
+            </div>
             {q.options.map((o, oi) => (
               <div key={oi} className="flex items-center gap-2">
                 <input type="radio" name={`correct-${i}`} checked={q.correctIndex === oi} onChange={() => setQ(i, { correctIndex: oi })} className="accent-emerald-500" title="الإجابة الصحيحة" />
