@@ -159,6 +159,7 @@ export interface ExamQuestion {
   options: string[];
   correctIndex?: number;
   explanation?: string;
+  image?: string;
 }
 
 export interface Exam {
