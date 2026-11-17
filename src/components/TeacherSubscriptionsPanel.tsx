@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2, Pencil, Plus, Save, Trash2, ImagePlus, X } from 'lucide-react';
-import { Exam, Lesson, TeacherPlan, TeacherSubsOverview } from '../types';
+import { Exam, Lesson, SubjectType, TeacherPlan, TeacherSubsOverview } from '../types';
 import * as api from '../services/api';
 import { PlanPosterImg, PlanPosterGallery, templateFor } from './PlanPoster';
 import { formatCairo } from '../utils/progress';
@@ -8,7 +8,8 @@ import { prepareImage } from '../utils/image';
 import { TeacherPaymentsPanel } from './TeacherPaymentsPanel';
 
 const inp = 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500';
-const GRADES = [{ v: '', l: 'كل الصفوف' }, { v: '1ث', l: '1ث' }, { v: '2ث', l: '2ث' }, { v: '3ث', l: '3ث' }];
+const GRADES = [{ v: '', l: 'كل الصفوف' }, { v: '1ث', l: '1ث' }, { v: '2ث', l: '2ث' }, { v: '3ث', l: '3ث' }, { v: 'بكالوريا', l: 'أولى بكالوريا' }];
+const SUBJECT_LABELS: Record<SubjectType, string> = { biology: 'الأحياء', geology: 'الجيولوجيا', integrated_science: 'العلوم المتكاملة' };
 const STATUS_AR: Record<string, string> = { active: 'نشط', expiring: 'قريب الانتهاء', expired: 'منتهي', paused: 'موقوف', cancelled: 'ملغي' };
 const STATUS_CLS: Record<string, string> = {
   active: 'bg-emerald-500/15 text-emerald-300', expiring: 'bg-emerald-500/15 text-emerald-300', expired: 'bg-red-500/15 text-red-300',
@@ -33,6 +34,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
   const [price, setPrice] = useState('0');
   const [days, setDays] = useState('30');
   const [grade, setGrade] = useState('');
+  const [subjectKeys, setSubjectKeys] = useState<SubjectType[]>(['biology']);
   const [selLessons, setSelLessons] = useState<string[]>([]);
   const [selExams, setSelExams] = useState<string[]>([]);
   const [ai, setAi] = useState(false);
@@ -60,9 +62,11 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     setBusy(false);
   };
 
-  const resetForm = () => { setEditId(null); setName(''); setPrice('0'); setDays('30'); setGrade(''); setSelLessons([]); setSelExams([]); setAi(false); setActive(true); setImageData(null); };
+  const resetForm = () => { setEditId(null); setName(''); setPrice('0'); setDays('30'); setGrade(''); setSubjectKeys(['biology']); setSelLessons([]); setSelExams([]); setAi(false); setActive(true); setImageData(null); };
   const editPlan = (p: TeacherPlan) => {
     setEditId(p.id); setName(p.name); setPrice(String(p.price)); setDays(String(p.durationDays)); setGrade(p.grade || '');
+    const inferred = p.subjectKeys?.length ? p.subjectKeys : Array.from(new Set(p.lessonIds.map(id => lessons.find(l => l.id === id)?.subject || 'biology'))) as SubjectType[];
+    setSubjectKeys(inferred.length ? inferred : ['biology']);
     setSelLessons(p.lessonIds); setSelExams(p.examIds); setAi(p.includesAi); setActive(p.active); setImageData(p.imageData || null); setView('plans');
   };
   const toggle = (arr: string[], set: (v: string[]) => void, id: string) => set(arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
@@ -71,7 +75,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     e.preventDefault();
     if (!name.trim() || Number(days) < 1) { setError('اكتب اسم الباقة ومدة صحيحة.'); return; }
     run(async () => {
-      const savedId = await api.teacherPlanSave({ id: editId, name: name.trim(), price: Number(price) || 0, days: Math.floor(Number(days)), grade, lessons: selLessons, exams: selExams, ai, active });
+      const savedId = await api.teacherPlanSave({ id: editId, name: name.trim(), price: Number(price) || 0, days: Math.floor(Number(days)), grade, lessons: selLessons, exams: selExams, subjects: subjectKeys, ai, active });
       await api.teacherPlanImageSave(savedId, imageData);
       resetForm();
     }, 'تم حفظ الباقة ✅');
@@ -88,7 +92,12 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     return c;
   }, [data]);
 
-  const visibleLessons = lessons.filter(l => !grade || l.grade === grade);
+  const subjectOptions: SubjectType[] = grade === '3ث' ? ['biology','geology'] : grade === 'بكالوريا' ? ['integrated_science'] : grade === '' ? ['biology','geology','integrated_science'] : ['biology'];
+  const visibleLessons = lessons.filter(l => (!grade || l.grade === grade) && subjectKeys.includes(l.subject || 'biology'));
+  const visibleExams = exams.filter(x => {
+    const linked = x.lessonId ? lessons.find(l => l.id === x.lessonId) : undefined;
+    return !linked || subjectKeys.includes(linked.subject || 'biology');
+  });
   const plans = data?.plans || [];
 
   if (view === 'pay') {
@@ -170,10 +179,20 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
               <input value={days} onChange={e => setDays(e.target.value)} type="number" min={1} max={1100} placeholder="المدة بالأيام" className={inp} required />
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
-              <select value={grade} onChange={e => setGrade(e.target.value)} className={inp}>{GRADES.map(g => <option key={g.v} value={g.v}>{g.l}</option>)}</select>
+              <select value={grade} onChange={e => { const next = e.target.value; setGrade(next); setSubjectKeys(next === "3ث" ? ["biology"] : next === "بكالوريا" ? ["integrated_science"] : next === "" ? ["biology","geology"] : ["biology"]); }} className={inp}>{GRADES.map(g => <option key={g.v} value={g.v}>{g.l}</option>)}</select>
               <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={ai} onChange={e => setAi(e.target.checked)} /> تشمل المدرس الذكي</label>
             </div>
-            <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2">
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 space-y-2">
+              <div className="text-xs font-black text-emerald-200">المواد التي يشملها الاشتراك</div>
+              <div className="flex flex-wrap gap-3">
+                {subjectOptions.map(subject => <label key={subject} className="inline-flex items-center gap-2 text-xs text-slate-200">
+                  <input type="checkbox" checked={subjectKeys.includes(subject)} onChange={() => setSubjectKeys(current => current.includes(subject) ? current.filter(x => x !== subject) : [...current, subject])} />
+                  {SUBJECT_LABELS[subject]}
+                </label>)}
+              </div>
+              <p className="text-[10px] text-slate-400">اختَر الأحياء أو الجيولوجيا أو الاثنين معًا. في أولى بكالوريا تظهر العلوم المتكاملة.</p>
+            </div>
+            <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2>
               <div className="text-xs font-bold text-slate-300">صورة الباقة التي ستظهر للطلاب</div>
               <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-300">
                 <ImagePlus className="w-4 h-4" /> {imageData ? 'تغيير صورة الباقة' : 'رفع صورة للباقة'}
@@ -200,12 +219,12 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
               <div>
                 <div className="text-xs font-bold text-slate-300 mb-1">الامتحانات داخل الباقة ({selExams.length})</div>
                 <div className="max-h-40 overflow-auto rounded-lg bg-slate-800 border border-slate-700 p-2 space-y-1">
-                  {exams.length === 0 && <div className="text-[11px] text-slate-500">لا توجد امتحانات.</div>}
-                  {exams.map(x => <label key={x.id} className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selExams.includes(x.id)} onChange={() => toggle(selExams, setSelExams, x.id)} /> {x.title}</label>)}
+                  {visibleExams.length === 0 && <div className="text-[11px] text-slate-500">لا توجد امتحانات لهذه المادة.</div>}
+                  {visibleExams.map(x => <label key={x.id} className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selExams.includes(x.id)} onChange={() => toggle(selExams, setSelExams, x.id)} /> {x.title}</label>)}
                 </div>
               </div>
             </div>
-            <p className="text-[11px] text-slate-500">أي محاضرة/امتحان تختاره هنا يتقفل على غير المشتركين من الخادم. اللي مش داخل أي باقة يفضل مجاني.</p>
+            <p className="text-[11px] text-slate-500">المواد المختارة تُحمى من الخادم بالكامل؛ والاختيار المحدد للمحاضرات والامتحانات يضيف تحكمًا أدق داخل الباقة.</p>
             <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)} /> الباقة مفعّلة</label>
             <div className="flex gap-2">
               <button disabled={busy} className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-60 text-slate-950 font-black rounded-lg px-4 py-2 text-xs"><Save className="w-4 h-4" /> حفظ</button>
@@ -222,7 +241,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
                 </div>
                 <div className="flex-1 min-w-[10rem]">
                   <div className="font-black text-sm">{p.name} {!p.active && <span className="text-slate-500">(موقوفة)</span>}</div>
-                  <div className="text-slate-400">{p.price} ج.م · {p.durationDays} يوم · {p.grade || 'كل الصفوف'} · {p.lessonIds.length} محاضرة · {p.examIds.length} امتحان{p.includesAi ? ' · AI' : ''} · {p.subscribers} مشترك نشط</div>
+                  <div className="text-slate-400">{p.price} ج.م · {p.durationDays} يوم · {p.grade || 'كل الصفوف'} · {(p.subjectKeys || []).map(k => SUBJECT_LABELS[k]).join(' + ') || 'باقة قديمة'} · {p.lessonIds.length} محاضرة · {p.examIds.length} امتحان{p.includesAi ? ' · AI' : ''} · {p.subscribers} مشترك نشط</div>
                 </div>
                 <div className="w-full"><PlanPosterGallery plan={{ name: p.name, price: p.price, durationDays: p.durationDays, grade: p.grade, includesAi: p.includesAi, lessonCount: p.lessonIds.length, examCount: p.examIds.length }} /></div>
                 <div className="flex gap-2">
