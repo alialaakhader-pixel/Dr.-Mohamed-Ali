@@ -118,12 +118,20 @@ export const LecturesView: React.FC<Props> = ({
                               </button>
                             </div>
                             <div className="mt-2 grid grid-cols-2 gap-2">
-                              <button onClick={onOpenAssignments} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/[0.06] px-2 py-2 text-[10px] font-bold text-cyan-200 hover:bg-cyan-400/10">
-                                <ClipboardCheck className="h-3.5 w-3.5" /> واجب المحاضرة
-                              </button>
-                              <button onClick={onOpenExams} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-sky-400/20 bg-sky-400/[0.06] px-2 py-2 text-[10px] font-bold text-sky-200 hover:bg-sky-400/10">
-                                <FileQuestion className="h-3.5 w-3.5" /> امتحان المحاضرة
-                              </button>
+                              {item.assignmentId ? (
+                                <button onClick={onOpenAssignments} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/[0.06] px-2 py-2 text-[10px] font-bold text-cyan-200 hover:bg-cyan-400/10">
+                                  <ClipboardCheck className="h-3.5 w-3.5" /> واجب المحاضرة
+                                </button>
+                              ) : (
+                                <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-2 py-2 text-center text-[10px] text-slate-500">الواجب لم يُنشر بعد</div>
+                              )}
+                              {item.examId ? (
+                                <button onClick={onOpenExams} className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-sky-400/20 bg-sky-400/[0.06] px-2 py-2 text-[10px] font-bold text-sky-200 hover:bg-sky-400/10">
+                                  <FileQuestion className="h-3.5 w-3.5" /> امتحان المحاضرة
+                                </button>
+                              ) : (
+                                <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-2 py-2 text-center text-[10px] text-slate-500">الامتحان لم يُنشر بعد</div>
+                              )}
                             </div>
                           </>
                         )}
