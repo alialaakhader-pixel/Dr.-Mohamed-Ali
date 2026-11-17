@@ -71,7 +71,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
   };
   const toggle = (arr: string[], set: (v: string[]) => void, id: string) => set(arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
   const changePlanGrade = (nextGrade: string) => {
-    const nextSubjects: SubjectType[] = nextGrade === '3ث' ? ['biology'] : nextGrade === 'بكالوريا' ? ['integrated_science'] : nextGrade === '' ? ['biology','geology'] : ['biology'];
+    const nextSubjects: SubjectType[] = nextGrade === '3ث' ? ['biology'] : nextGrade === 'بكالوريا' ? ['integrated_science'] : ['biology'];
     setGrade(nextGrade); setSubjectKeys(nextSubjects);
     setSelLessons(current => current.filter(id => { const l = lessons.find(x => x.id === id); return !!l && (!nextGrade || l.grade === nextGrade) && nextSubjects.includes(l.subject || 'biology'); }));
     setSelExams(current => current.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!x && !!l && (!nextGrade || x.grade === nextGrade) && nextSubjects.includes(l.subject || 'biology'); }));
@@ -105,7 +105,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     return c;
   }, [data]);
 
-  const subjectOptions: SubjectType[] = grade === '3ث' ? ['biology','geology'] : grade === 'بكالوريا' ? ['integrated_science'] : grade === '' ? ['biology','geology','integrated_science'] : ['biology'];
+  const subjectOptions: SubjectType[] = grade === '3ث' ? ['biology','geology'] : grade === 'بكالوريا' ? ['integrated_science'] : ['biology'];
   const visibleLessons = lessons.filter(l => (!grade || l.grade === grade) && subjectKeys.includes(l.subject || 'biology'));
   const visibleExams = exams.filter(x => {
     const linked = x.lessonId ? lessons.find(l => l.id === x.lessonId) : undefined;
@@ -203,7 +203,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
                   {SUBJECT_LABELS[subject]}
                 </label>)}
               </div>
-              <p className="text-[10px] text-slate-400">اختَر الأحياء أو الجيولوجيا أو الاثنين معًا. في أولى بكالوريا تظهر العلوم المتكاملة.</p>
+              <p className="text-[10px] text-slate-400">في تالتة ثانوي يمكنك اختيار الأحياء أو الجيولوجيا أو الاثنين. أولى بكالوريا مخصصة للعلوم المتكاملة، والباقة العامة تشمل الأحياء فقط.</p>
             </div>
             <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2">
               <div className="text-xs font-bold text-slate-300">صورة الباقة التي ستظهر للطلاب</div>
