@@ -44,7 +44,7 @@ export const LawsEditor: React.FC<Props> = ({ laws, onChange }) => {
         <FlaskConical className="w-4 h-4 text-emerald-400" />
         6. علاقات ومفاهيم أحيائية تفاعلية (اختياري)
       </div>
-      <p className="text-[11px] text-slate-400">أضف علاقة رياضية مرتبطة بالدرس مثل <span dir="ltr" className="font-mono text-emerald-300">V = I * R</span> وستظهر للطالب أشرطة تحكم ونتيجة لحظية.</p>
+      <p className="text-[11px] text-slate-400">أضف علاقة رياضية مرتبطة بالدرس مثل <span dir="ltr" className="font-mono text-emerald-300">H = 2 * p * q</span> وستظهر للطالب أشرطة تحكم ونتيجة لحظية.</p>
 
       <div className="flex flex-wrap gap-1.5">
         {PRESETS.map((p, i) => (
@@ -65,9 +65,9 @@ export const LawsEditor: React.FC<Props> = ({ laws, onChange }) => {
           <div key={l.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-3 space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <input className={inp} placeholder="اسم العلاقة" value={l.title} onChange={e => update(l.id, { title: e.target.value })} />
-              <input className={inp + ' font-mono'} dir="ltr" placeholder="V = I * R" value={l.formula} onChange={e => setFormula(l, e.target.value)} />
-              <input className={inp} placeholder="اسم الناتج (فرق الجهد)" value={l.resultName} onChange={e => update(l.id, { resultName: e.target.value })} />
-              <input className={inp} dir="ltr" placeholder="وحدة الناتج (V)" value={l.resultUnit} onChange={e => update(l.id, { resultUnit: e.target.value })} />
+              <input className={inp + ' font-mono'} dir="ltr" placeholder="H = 2 * p * q" value={l.formula} onChange={e => setFormula(l, e.target.value)} />
+              <input className={inp} placeholder="اسم الناتج (تكرار الطراز الجيني)" value={l.resultName} onChange={e => update(l.id, { resultName: e.target.value })} />
+              <input className={inp} dir="ltr" placeholder="وحدة الناتج (نسبة)" value={l.resultUnit} onChange={e => update(l.id, { resultUnit: e.target.value })} />
             </div>
             {err && <div className="text-[11px] text-red-400">{err}</div>}
             {l.variables.map(v => (
