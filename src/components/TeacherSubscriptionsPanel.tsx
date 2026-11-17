@@ -205,7 +205,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
               </div>
               <p className="text-[10px] text-slate-400">اختَر الأحياء أو الجيولوجيا أو الاثنين معًا. في أولى بكالوريا تظهر العلوم المتكاملة.</p>
             </div>
-            <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2>
+            <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2">
               <div className="text-xs font-bold text-slate-300">صورة الباقة التي ستظهر للطلاب</div>
               <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-300">
                 <ImagePlus className="w-4 h-4" /> {imageData ? 'تغيير صورة الباقة' : 'رفع صورة للباقة'}
