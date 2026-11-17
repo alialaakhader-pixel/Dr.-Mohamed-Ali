@@ -9,6 +9,7 @@ import { TeacherDashboard } from './components/TeacherDashboard';
 import { StudentLoginModal } from './components/StudentLoginModal';
 import { GlassBiologyBackground } from './components/GlassBiologyBackground';
 import { LivingBiologyLab } from './components/LivingBiologyLab';
+import { GeologyLab } from './components/GeologyLab';
 import { ExamsView } from './components/ExamsView';
 import { LearningCenterView } from './components/LearningCenterView';
 import { SubscriptionsView } from './components/SubscriptionsView';
@@ -460,7 +461,7 @@ export default function App() {
   };
 
   const blocked = !!currentStudent && !!accountInfo && !accountInfo.hasAccess && !isTeacherAuth;
-  const gatedTabs = ['lessons', 'forum', 'exams', 'dashboard', 'learn', 'lab'];
+  const gatedTabs = ['lessons', 'forum', 'exams', 'dashboard', 'learn', 'lab', 'geology'];
 
   const activeLesson = lessons.find(l => l.id === selectedLessonId) || (lessons.length > 0 ? lessons[0] : null);
 
@@ -527,6 +528,7 @@ export default function App() {
         )}
 
         {activeTab === 'lab' && !blocked && <LivingBiologyLab />}
+        {activeTab === 'geology' && !blocked && <GeologyLab />}
 
         {activeTab === 'exams' && !blocked && (
           <ExamsView
