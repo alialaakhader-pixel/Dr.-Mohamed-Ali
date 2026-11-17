@@ -138,7 +138,7 @@ const GradeColumn: React.FC<{
             </div>
             <div className="text-slate-300">المدة: {p.durationDays} يوم</div>
             <div className="text-emerald-200 font-bold">{(p.subjectKeys || []).map(k => ({ biology: 'الأحياء', geology: 'الجيولوجيا', integrated_science: 'العلوم المتكاملة' }[k])).join(' + ') || 'محتوى الباقة'}</div>
-            <div className="text-slate-400">{p.lessonCount} محاضرة · {p.examCount} امتحان{p.includesAi ? ' · المدرس الذكي' : ''}</div>
+            <div className="text-slate-400">{p.subjectKeys?.length ? 'محتوى المادة بالكامل' : `${p.lessonCount} محاضرة`} · {p.examCount} امتحان{p.includesAi ? ' · المدرس الذكي' : ''}</div>
             {student && mineHere && p.price > 0 && (
               <button onClick={() => setPayPlan(p)} className="mt-1.5 w-full py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs">اشترك الآن · تحويل فودافون كاش / إنستا باي</button>
             )}
