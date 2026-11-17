@@ -109,7 +109,7 @@ export const TeacherAssignmentsPanel: React.FC<{ lessons: Lesson[] }> = ({ lesso
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="font-bold text-sm">{a.title} <span className={`text-[10px] px-2 py-0.5 rounded-full ${a.published ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-700 text-slate-300'}`}>{a.published ? 'منشور' : 'مسودة'}</span></div>
-              <div className="text-[11px] text-slate-400 mt-0.5">الصف: {a.grade} · المحاضرة: {a.lessonId ? (lessons.find(l => l.id === a.lessonId)?.title || 'محاضرة') : 'مستقل'} · التسليم: {a.dueAt ? formatCairo(a.dueAt) : 'غير محدد'} · {a.submissions.length} تسليم</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">الصف: {a.grade} · المحاضرة: {a.lessonId ? (lessons.find(l => l.id === a.lessonId)?.title || 'محاضرة') : 'مستقل'} · المحاضرة: {a.lessonId ? (lessons.find(l => l.id === a.lessonId)?.title || 'محاضرة') : 'مستقل'} · التسليم: {a.dueAt ? formatCairo(a.dueAt) : 'غير محدد'} · {a.submissions.length} تسليم</div>
             </div>
             <div className="flex gap-2 shrink-0">
               <button onClick={() => edit(a)} className="px-3 py-1.5 rounded-lg bg-slate-800 text-[11px] inline-flex items-center gap-1"><Pencil className="w-3 h-3" /> تعديل</button>
