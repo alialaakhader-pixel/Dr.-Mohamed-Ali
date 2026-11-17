@@ -127,6 +127,16 @@ export const ExamsView: React.FC<ExamsViewProps> = ({ exams, results, currentStu
                 <p className="font-bold text-sm sm:text-base leading-relaxed mb-4">
                   <span className="text-emerald-400 font-mono ml-2">{qi + 1}.</span>{q.question}
                 </p>
+                {q.image && (
+                  <div className="mb-4 rounded-2xl border border-slate-700 bg-slate-950/60 p-2">
+                    <img
+                      src={q.image}
+                      alt={`صورة السؤال ${qi + 1}`}
+                      loading="lazy"
+                      className="mx-auto max-h-[420px] w-auto max-w-full rounded-xl object-contain"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   {q.options.map((opt, oi) => {
                     const isChosen = chosen === oi;
