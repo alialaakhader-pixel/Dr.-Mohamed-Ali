@@ -258,6 +258,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         attachments: attachments,
         publishedAt: new Date().toISOString().split('T')[0],
         viewsCount: 0,
+        sequenceGate: true,
         keyPoints: keyPoints.length > 0 ? keyPoints : undefined,
       laws: laws.filter(isLawValid).length > 0 ? laws.filter(isLawValid) : undefined
       };
@@ -1031,7 +1032,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
         <TeacherAccountsPanel accounts={accounts} onGrant={onGrantAccess} onDelete={onDeleteAccount} onResetDevices={onResetDevices} onSetMaxDevices={onSetMaxDevices} />
       )}
 
-      {activeTab === 'assignments' && <TeacherAssignmentsPanel />}
+      {activeTab === 'assignments' && <TeacherAssignmentsPanel lessons={lessons} />}
 
       {activeTab === 'insights' && (
         <div className="space-y-6">
@@ -1049,6 +1050,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
       {activeTab === 'exams' && (
         <TeacherExamsPanel
           exams={exams}
+          lessons={lessons}
           results={examResults}
           students={students}
           onSave={onSaveExam}
