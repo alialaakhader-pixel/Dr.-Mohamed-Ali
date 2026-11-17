@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Download,
   ClipboardList,
-  BookCheck
+  BookCheck,
+  Mountain
 } from 'lucide-react';
 import { StudentUser, PlatformNotification } from '../types';
 
@@ -120,6 +121,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Dna className="w-4 h-4" />
               <span>مختبر الأحياء</span>
+            </button>
+
+            <button
+              onClick={() => handleNavClick('geology')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'geology' ? 'bg-amber-300 text-slate-950 shadow-md shadow-amber-300/20' : 'text-slate-300 hover:text-white hover:bg-slate-700/50'}`}
+            >
+              <Mountain className="w-4 h-4" />
+              <span>مختبر الجيولوجيا</span>
             </button>
 
             <button
@@ -363,6 +372,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Dna className="w-4 h-4" />
             <span>مختبر الأحياء</span>
+          </button>
+
+          <button
+            onClick={() => handleNavClick('geology')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-right ${activeTab === 'geology' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-slate-800'}`}
+          >
+            <Mountain className="w-4 h-4" />
+            <span>مختبر الجيولوجيا</span>
           </button>
 
           <button
