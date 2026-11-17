@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Download, Loader2, Palette, RefreshCw } from 'lucide-react';
+import { Download, Loader2, Palette, RefreshCw, ImagePlus, X } from 'lucide-react';
 import { Ctx, DISPLAY, FONT, GRADE_LABEL, H, W, bolt, display, ensureFonts, extruded, fitText, glowSpot, loadPhoto, person, pill, rr } from './PlanPoster';
+import { prepareImage } from '../utils/image';
 
 // ---------- topic detection ----------
 export type TopicKind = 'circuit' | 'wave' | 'magnet' | 'heat' | 'mech' | 'modern' | 'general';
@@ -227,11 +228,11 @@ function drawBanner(ctx: Ctx, o: LessonPosterOpts, kind: TopicKind, p: Pal, img:
   if (o.subtitle) { ctx.fillStyle = '#64748b'; ctx.font = `700 22px ${FONT}`; fitText(ctx, o.subtitle, W - 160, 24, 700, 16); ctx.fillText(o.subtitle, W / 2, 1322); }
 }
 
-export async function renderLessonPoster(o: LessonPosterOpts, layout: LessonLayout): Promise<string> {
+export async function renderLessonPoster(o: LessonPosterOpts, layout: LessonLayout, teacherPhoto?: string): Promise<string> {
   await ensureFonts();
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d')!; ctx.direction = 'rtl'; ctx.textAlign = 'center';
-  const img = await loadPhoto();
+  const img = await loadPhoto(teacherPhoto);
   const kind = !o.kind || o.kind === 'auto' ? detectKind(o.title) : o.kind;
   const pal = PALS[(KIND_PAL[kind] + (o.variant || 0)) % PALS.length];
   const custom = (o.formulas || []).map(s => s.trim()).filter(Boolean).slice(0, 3);
@@ -253,6 +254,7 @@ export const LessonPosterStudio: React.FC = () => {
   const [auto, setAuto] = useState(true);
   const [when, setWhen] = useState('');
   const [variant, setVariant] = useState(0);
+  const [teacherPhoto, setTeacherPhoto] = useState<string | undefined>();
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const detected = useMemo(() => detectKind(title), [title]);
@@ -262,7 +264,7 @@ export const LessonPosterStudio: React.FC = () => {
     setBusy(true);
     const o: LessonPosterOpts = { title, subtitle, grade: grade || null, kind, formulas: formulas.split('\n'), autoFormulas: auto, when, variant };
     const out: Record<string, string> = {};
-    for (const l of LESSON_LAYOUTS) { try { out[l.id] = await renderLessonPoster(o, l.id); } catch { /* skip */ } }
+    for (const l of LESSON_LAYOUTS) { try { out[l.id] = await renderLessonPoster(o, l.id, teacherPhoto); } catch { /* skip */ } }
     setUrls(out); setBusy(false);
   };
   // re-render when the palette variant changes after a first generation
@@ -274,13 +276,28 @@ export const LessonPosterStudio: React.FC = () => {
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-5 text-white">
       <div>
         <h2 className="text-xl font-display font-black flex items-center gap-2"><Palette className="w-5 h-5 text-emerald-400" /> استوديو بوسترات الدروس</h2>
-        <p className="text-xs text-slate-400 mt-1">اكتب اسم الدرس وهيتركّب بوستر تعليمي بهوية إحياء ورسمة خلوية توضيحية، مع 3 تخطيطات قابلة للتنزيل.</p>
+        <p className="text-xs text-slate-400 mt-1">اكتب اسم الدرس وهيتركّب بوستر تعليمي بهوية إحياء ورسمة خلوية توضيحية، مع 3 تخطيطات قابلة للتنزيل وإمكانية إضافة صورة الدكتور.</p>
       </div>
       <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-4 grid gap-3 sm:grid-cols-2">
         <label className="space-y-1 sm:col-span-2"><span className="text-[11px] font-bold text-slate-400">اسم الدرس *</span>
           <input value={title} onChange={e => setTitle(e.target.value)} maxLength={60} placeholder="مثال: تركيب الخلية النباتية والحيوانية" className={input} /></label>
         <label className="space-y-1"><span className="text-[11px] font-bold text-slate-400">سطر فرعي (اختياري)</span>
           <input value={subtitle} onChange={e => setSubtitle(e.target.value)} maxLength={60} placeholder="مثال: الباب الأول — تركيب الخلية" className={input} /></label>
+        <div className="sm:col-span-2 rounded-xl border border-dashed border-slate-600 p-3 space-y-2">
+          <div className="text-[11px] font-bold text-slate-300">صورة الدكتور على البوستر (اختياري)</div>
+          <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-300">
+            <ImagePlus className="w-4 h-4" /> {teacherPhoto ? 'تغيير الصورة' : 'رفع صورة الدكتور'}
+            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => {
+              const file = e.target.files?.[0]; e.currentTarget.value = ''; if (!file) return;
+              try { setTeacherPhoto(await prepareImage(file, 1400, 500 * 1024)); }
+              catch (err: any) { alert(err?.message || 'تعذر تجهيز الصورة.'); }
+            }} />
+          </label>
+          {teacherPhoto && <div className="relative inline-block">
+            <img src={teacherPhoto} alt="معاينة صورة الدكتور" className="max-h-44 max-w-48 rounded-xl border border-slate-600 object-contain" />
+            <button type="button" onClick={() => setTeacherPhoto(undefined)} className="absolute -top-2 -left-2 rounded-full bg-red-500 p-1 text-white" title="حذف الصورة"><X className="w-3.5 h-3.5" /></button>
+          </div>}
+        </div>
         <label className="space-y-1"><span className="text-[11px] font-bold text-slate-400">الموعد أو الدعوة (اختياري)</span>
           <input value={when} onChange={e => setWhen(e.target.value)} maxLength={40} placeholder="مثال: الأحد 8 م · لايف" className={input} /></label>
         <label className="space-y-1"><span className="text-[11px] font-bold text-slate-400">الصف</span>
