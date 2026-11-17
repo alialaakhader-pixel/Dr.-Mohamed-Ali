@@ -744,12 +744,17 @@ export async function teacherSubsOverview(): Promise<TeacherSubsOverview> {
   return r as TeacherSubsOverview;
 }
 
-export async function teacherPlanSave(p: { id?: string | null; name: string; price: number; days: number; grade: string; lessons: string[]; exams: string[]; ai: boolean; active: boolean }) {
+export async function teacherPlanSave(p: { id?: string | null; name: string; price: number; days: number; grade: string; lessons: string[]; exams: string[]; ai: boolean; active: boolean }): Promise<string> {
   const r = await rpc('ha_teacher_plan_save', {
     p_id: p.id || null, p_name: p.name, p_price: p.price, p_days: p.days, p_grade: p.grade,
     p_lessons: p.lessons, p_exams: p.exams, p_ai: p.ai, p_active: p.active
   }, await teacherToken());
-  if (!r?.ok) throw new Error(subErr(r?.error));
+  if (!r?.ok || !r.id) throw new Error(subErr(r?.error));
+  return String(r.id);
+}
+export async function teacherPlanImageSave(id: string, imageData: string | null): Promise<void> {
+  const r = await rpc('ha_teacher_plan_image_save', { p_id: id, p_image: imageData }, await teacherToken());
+  if (!r?.ok) throw new Error(r?.error === 'INVALID_IMAGE' ? 'الصورة كبيرة أو نوعها غير مدعوم.' : 'تعذر حفظ صورة الباقة.');
 }
 export async function teacherPlanDelete(id: string): Promise<{ deactivated: boolean }> {
   const r = await rpc('ha_teacher_plan_delete', { p_id: id }, await teacherToken());
