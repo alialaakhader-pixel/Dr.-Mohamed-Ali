@@ -583,7 +583,7 @@ export default function App() {
         )}
 
         {activeTab === 'learn' && !blocked && (
-          <LearningCenterView currentStudent={currentStudent} onOpenLoginModal={() => setShowStudentLoginModal(true)} />
+          <LearningCenterView currentStudent={currentStudent} onOpenLoginModal={() => setShowStudentLoginModal(true)} onProgressChanged={() => { if (currentStudent) loadStudent(currentStudent.codeUsed, currentStudent.grade); }} />
         )}
 
         {activeTab === 'dashboard' && !blocked && (
