@@ -274,10 +274,10 @@ export interface MySubscription {
   status: 'active' | 'paused' | 'cancelled' | 'expired'; daysLeft: number;
   includesAi: boolean; lessonCount: number; examCount: number; source: 'teacher' | 'activation_code';
 }
-export interface PlanCatalogItem { id: string; name: string; price: number; durationDays: number; includesAi: boolean; lessonCount: number; examCount: number }
+export interface PlanCatalogItem { id: string; name: string; price: number; durationDays: number; includesAi: boolean; lessonCount: number; examCount: number; imageData?: string | null }
 export interface TeacherPlan {
   id: string; name: string; price: number; durationDays: number; grade: string | null;
-  lessonIds: string[]; examIds: string[]; includesAi: boolean; active: boolean; subscribers: number;
+  lessonIds: string[]; examIds: string[]; includesAi: boolean; active: boolean; subscribers: number; imageData?: string | null;
 }
 export interface TeacherSubscription {
   id: string; code: string; student: string; plan: string; plan_id: string; starts_at: string; ends_at: string;
