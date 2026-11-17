@@ -73,7 +73,7 @@ export const TeacherAssignmentsPanel: React.FC<{ lessons: Lesson[] }> = ({ lesso
   return (
     <div className="space-y-6 text-white">
       <form onSubmit={save} className="rounded-2xl bg-slate-900 border border-slate-800 p-5 space-y-3">
-        <h3 className="font-black text-sm flex items-center gap-2"><Plus className="w-4 h-4 text-emerald-400" />{editId ? 'تعديل واجب' : 'واجب جديد'}</h3>
+        <div><h3 className="font-black text-sm flex items-center gap-2"><Plus className="w-4 h-4 text-emerald-400" />{editId ? 'تعديل واجب' : 'واجب جديد'}</h3><p className="mt-1 text-[11px] text-slate-400">اربط الواجب بالمحاضرة نفسها؛ تسليم الواجب شرط لفتح المحاضرة التالية.</p></div>
         <div className="grid sm:grid-cols-2 gap-3">
           <input className={inp} placeholder="عنوان الواجب" value={title} maxLength={180} onChange={e => setTitle(e.target.value)} required />
           <select className={inp} value={grade} onChange={e => setGrade(e.target.value)}>
