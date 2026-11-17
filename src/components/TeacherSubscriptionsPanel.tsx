@@ -76,12 +76,12 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     setSelLessons(current => current.filter(id => { const l = lessons.find(x => x.id === id); return !!l && (!nextGrade || l.grade === nextGrade) && nextSubjects.includes(l.subject || 'biology'); }));
     setSelExams(current => current.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!x && (!nextGrade || x.grade === nextGrade) && (!l || nextSubjects.includes(l.subject || 'biology')); }));
   };
-  const changePlanSubjects = (subject: SubjectType) => setSubjectKeys(current => {
-    const next = current.includes(subject) ? current.filter(x => x !== subject) : [...current, subject];
+  const changePlanSubjects = (subject: SubjectType) => {
+    const next = subjectKeys.includes(subject) ? subjectKeys.filter(x => x !== subject) : [...subjectKeys, subject];
+    setSubjectKeys(next);
     setSelLessons(ids => ids.filter(id => { const l = lessons.find(x => x.id === id); return !l || next.includes(l.subject || 'biology'); }));
     setSelExams(ids => ids.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !l || next.includes(l.subject || 'biology'); }));
-    return next;
-  });
+  };
 
   const savePlan = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +109,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
   const visibleLessons = lessons.filter(l => (!grade || l.grade === grade) && subjectKeys.includes(l.subject || 'biology'));
   const visibleExams = exams.filter(x => {
     const linked = x.lessonId ? lessons.find(l => l.id === x.lessonId) : undefined;
-    return !linked || subjectKeys.includes(linked.subject || 'biology');
+    return (!grade || x.grade === grade) && (!linked || subjectKeys.includes(linked.subject || 'biology'));
   });
   const plans = data?.plans || [];
 
