@@ -1,4 +1,5 @@
 export type GradeType = '3ث' | '2ث' | '1ث' | 'بكالوريا';
+export type SubjectType = 'biology' | 'geology' | 'integrated_science';
 
 export interface QuizQuestion {
   id: string;
@@ -20,6 +21,7 @@ export interface Lesson {
   id: string;
   title: string;
   grade: GradeType;
+  subject?: SubjectType;
   chapter: string;
   unit: string;
   duration: string;
