@@ -94,7 +94,7 @@ export const TeacherExamsPanel: React.FC<Props> = ({ exams, lessons, results, st
           </div>
           <div>
             <h3 className="font-display font-black text-white">إنشاء امتحان جديد</h3>
-            <p className="text-xs text-slate-400">حدد الإجابة الصحيحة لكل سؤال، والتصحيح بيتم تلقائياً للطالب.</p>
+            <p className="text-xs text-slate-400">حدد الإجابة الصحيحة واربط الامتحان بمحاضرته حتى يدخل في نظام فتح المحاضرات بالتتابع.</p>
           </div>
         </div>
 
