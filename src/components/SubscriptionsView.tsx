@@ -130,7 +130,7 @@ const GradeColumn: React.FC<{
         {plans.length === 0 && <div className="rounded-2xl bg-slate-900/70 border border-slate-700 p-3 text-xs text-slate-400">لا توجد باقات لهذه المرحلة حالياً. المحتوى المتاح مجاني.</div>}
         {plans.map(p => (
           <div key={p.id} className="rounded-2xl bg-slate-900/80 border border-slate-700 p-3 text-xs space-y-1">
-            <PlanPosterImg plan={p} template={templateFor(p.id)} />
+            {p.imageData ? <img src={p.imageData} alt={p.name} loading="lazy" className="w-full max-h-48 rounded-xl border border-slate-700 object-cover" /> : <PlanPosterImg plan={p} template={templateFor(p.id)} />}
             <div className="flex items-center justify-between gap-2 pt-1">
               <span className="font-black text-sm text-white">{p.name}</span>
               <span className="font-black text-emerald-300">{p.price > 0 ? `${p.price} ج.م` : 'مجاناً'}</span>
