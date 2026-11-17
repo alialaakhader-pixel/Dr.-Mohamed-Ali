@@ -37,6 +37,11 @@ export interface Lesson {
   quiz?: QuizQuestion[];
   laws?: LessonLaw[];
   locked?: boolean;
+  gateLocked?: boolean;
+  lockedReason?: 'SUBSCRIPTION' | 'PREREQUISITES';
+  sequenceGate?: boolean;
+  assignmentId?: string | null;
+  examId?: string | null;
 }
 
 export interface LawVariable {
@@ -170,6 +175,7 @@ export interface Exam {
   questions: ExamQuestion[];
   createdAt?: string;
   locked?: boolean;
+  lessonId?: string | null;
 }
 
 export interface ExamReviewItem {
@@ -240,6 +246,7 @@ export interface AssignmentItem {
   grade: number | null;
   feedback: string | null;
   answer: string | null;
+  lessonId?: string | null;
 }
 
 export interface TeacherAssignment {
@@ -249,6 +256,7 @@ export interface TeacherAssignment {
   body: string;
   dueAt: string | null;
   published: boolean;
+  lessonId?: string | null;
   submissions: {
     id: string; code: string; studentName: string | null; answer: string;
     submittedAt: string; grade: number | null; feedback: string | null;
