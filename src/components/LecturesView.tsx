@@ -87,7 +87,7 @@ export const LecturesView: React.FC<Props> = ({
       ) : (
         <div className="space-y-7">
           {chapters.map((chapter, chapterIndex) => {
-            const items = ordered.filter(l => (l.chapter?.trim() || 'محاضرات عامة') === chapter);
+            const items = filtered.filter(l => (l.chapter?.trim() || 'محاضرات عامة') === chapter);
             return (
               <section key={chapter} className="space-y-3">
                 <div className="flex items-center gap-3">
