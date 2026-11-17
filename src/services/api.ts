@@ -394,7 +394,8 @@ const EXAM_ERRORS: Record<string, string> = {
   ALREADY_TAKEN: 'سبق وأديت هذا الامتحان. لو محتاج محاولة جديدة تواصل مع المدرس.',
   NOT_FOUND: 'هذا الامتحان غير متاح لك.',
   UNAUTHORIZED: 'انتهت صلاحية الدخول أو الاشتراك. سجّل دخولك من جديد.',
-  EMPTY_EXAM: 'هذا الامتحان لا يحتوي على أسئلة.'
+  EMPTY_EXAM: 'هذا الامتحان لا يحتوي على أسئلة.',
+  LESSON_LOCKED: 'أكمل واجب المحاضرة السابقة واجتز امتحانها بأكثر من 50٪ أولاً.'
 };
 
 export async function examSubmit(code: string, examId: string, answers: (number | null)[]):
@@ -460,7 +461,7 @@ function mapAccount(a: any): Account {
 function mapExam(e: any): Exam {
   return {
     id: e.id, title: e.title, grade: e.grade as GradeType, durationMin: e.duration_min,
-    questions: e.questions || [], createdAt: e.created_at, lessonId: e.lesson_id || null, locked: !!e.locked
+    questions: e.questions || [], createdAt: e.created_at, lessonId: e.lesson_id || e.lessonId || null, locked: !!e.locked, lockedReason: e.lockedReason || undefined
   };
 }
 
@@ -619,7 +620,8 @@ const ASSIGN_ERRORS: Record<string, string> = {
   TOO_LARGE: 'الإجابة طويلة جداً.',
   DUE_PASSED: 'انتهى موعد تسليم هذا الواجب.',
   ALREADY_GRADED: 'تم تصحيح هذا الواجب ولا يمكن تعديله.',
-  EMPTY: 'اكتب إجابتك أولاً.'
+  EMPTY: 'اكتب إجابتك أولاً.',
+  LESSON_LOCKED: 'هذه المحاضرة لم تُفتح بعد. أكمل متطلبات المحاضرة السابقة أولاً.'
 };
 
 export async function assignmentFeed(code: string): Promise<AssignmentItem[]> {
