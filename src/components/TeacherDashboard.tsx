@@ -917,7 +917,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 )}
               </div>
 
-              {/* 5. Key points & formulas */}
+              {/* 5. Key biology concepts */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
                   أهم النقاط والمفاهيم الأساسية في المحاضرة (اختياري)
@@ -927,7 +927,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                     type="text"
                     value={keyPointInput}
                     onChange={e => setKeyPointInput(e.target.value)}
-                    placeholder="أضف قانوناً أو فكرة أساسية..."
+                    placeholder="أضف مفهومًا أحيائيًا أو علاقة وراثية..."
                     onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddKeyPoint(); } }}
                     className="flex-1 bg-slate-800/90 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
