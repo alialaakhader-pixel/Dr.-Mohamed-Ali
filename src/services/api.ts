@@ -643,7 +643,7 @@ export async function teacherAssignments(): Promise<TeacherAssignment[]> {
   return r.items || [];
 }
 
-export async function teacherSaveAssignment(a: { id?: string | null; grade: string; title: string; body: string; dueAt: string | null; published: boolean }) {
+export async function teacherSaveAssignment(a: { id?: string | null; grade: string; title: string; body: string; dueAt: string | null; published: boolean; lessonId?: string | null }) {
   const r = await rpc('ha_teacher_assignment_save', {
     p_id: a.id || null, p_grade: a.grade, p_title: a.title.trim(), p_body: a.body, p_due: a.dueAt, p_published: a.published, p_lesson_id: a.lessonId || null
   }, await teacherToken());
