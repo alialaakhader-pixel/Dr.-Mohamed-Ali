@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Loader2, Pencil, Plus, Save, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Save, Trash2, ImagePlus, X } from 'lucide-react';
 import { Exam, Lesson, TeacherPlan, TeacherSubsOverview } from '../types';
 import * as api from '../services/api';
 import { PlanPosterImg, PlanPosterGallery, templateFor } from './PlanPoster';
 import { formatCairo } from '../utils/progress';
+import { prepareImage } from '../utils/image';
 import { TeacherPaymentsPanel } from './TeacherPaymentsPanel';
 
 const inp = 'w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500';
@@ -36,6 +37,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
   const [selExams, setSelExams] = useState<string[]>([]);
   const [ai, setAi] = useState(false);
   const [active, setActive] = useState(true);
+  const [imageData, setImageData] = useState<string | null>(null);
 
   // codes / grant
   const [codePlan, setCodePlan] = useState('');
@@ -58,10 +60,10 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     setBusy(false);
   };
 
-  const resetForm = () => { setEditId(null); setName(''); setPrice('0'); setDays('30'); setGrade(''); setSelLessons([]); setSelExams([]); setAi(false); setActive(true); };
+  const resetForm = () => { setEditId(null); setName(''); setPrice('0'); setDays('30'); setGrade(''); setSelLessons([]); setSelExams([]); setAi(false); setActive(true); setImageData(null); };
   const editPlan = (p: TeacherPlan) => {
     setEditId(p.id); setName(p.name); setPrice(String(p.price)); setDays(String(p.durationDays)); setGrade(p.grade || '');
-    setSelLessons(p.lessonIds); setSelExams(p.examIds); setAi(p.includesAi); setActive(p.active); setView('plans');
+    setSelLessons(p.lessonIds); setSelExams(p.examIds); setAi(p.includesAi); setActive(p.active); setImageData(p.imageData || null); setView('plans');
   };
   const toggle = (arr: string[], set: (v: string[]) => void, id: string) => set(arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
 
@@ -69,7 +71,8 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     e.preventDefault();
     if (!name.trim() || Number(days) < 1) { setError('اكتب اسم الباقة ومدة صحيحة.'); return; }
     run(async () => {
-      await api.teacherPlanSave({ id: editId, name: name.trim(), price: Number(price) || 0, days: Math.floor(Number(days)), grade, lessons: selLessons, exams: selExams, ai, active });
+      const savedId = await api.teacherPlanSave({ id: editId, name: name.trim(), price: Number(price) || 0, days: Math.floor(Number(days)), grade, lessons: selLessons, exams: selExams, ai, active });
+      await api.teacherPlanImageSave(savedId, imageData);
       resetForm();
     }, 'تم حفظ الباقة ✅');
   };
@@ -169,6 +172,22 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
             <div className="grid sm:grid-cols-2 gap-2">
               <select value={grade} onChange={e => setGrade(e.target.value)} className={inp}>{GRADES.map(g => <option key={g.v} value={g.v}>{g.l}</option>)}</select>
               <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={ai} onChange={e => setAi(e.target.checked)} /> تشمل المدرس الذكي</label>
+            </div>
+            <div className="rounded-xl border border-dashed border-slate-600 p-3 space-y-2">
+              <div className="text-xs font-bold text-slate-300">صورة الباقة التي ستظهر للطلاب</div>
+              <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-300">
+                <ImagePlus className="w-4 h-4" /> {imageData ? 'تغيير صورة الباقة' : 'رفع صورة للباقة'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => {
+                  const file = e.target.files?.[0]; e.currentTarget.value = ''; if (!file) return;
+                  try { setImageData(await prepareImage(file, 1100, 190 * 1024)); }
+                  catch (err: any) { setError(err?.message || 'تعذر تجهيز الصورة.'); }
+                }} />
+              </label>
+              {imageData && <div className="relative inline-block">
+                <img src={imageData} alt="معاينة صورة الباقة" className="max-h-44 max-w-full rounded-xl border border-slate-600 object-contain" />
+                <button type="button" onClick={() => setImageData(null)} className="absolute -top-2 -left-2 rounded-full bg-red-500 p-1 text-white" title="حذف الصورة"><X className="w-3.5 h-3.5" /></button>
+              </div>}
+              <p className="text-[10px] text-slate-500">JPG أو PNG أو WebP · تُضغط الصورة تلقائياً قبل الحفظ.</p>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
