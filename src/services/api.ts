@@ -721,7 +721,7 @@ const SUB_ERRORS: Record<string, string> = {
   UNAUTHORIZED: 'سجّل دخولك أولاً.',
   STUDENT_NOT_FOUND: 'كود الطالب غير موجود.',
   NOT_FOUND: 'العنصر غير موجود.',
-  INVALID: 'بيانات غير صالحة.'
+  INVALID: 'بيانات غير صالحة.', INVALID_SUBJECTS: 'اختيارات المواد غير متوافقة مع الصف الدراسي.'
 };
 const subErr = (e: unknown) => SUB_ERRORS[String(e)] || 'تعذر تنفيذ العملية.';
 
