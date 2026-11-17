@@ -630,7 +630,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                 </div>
                 <div>
                   <h2 className="text-lg font-display font-black text-white">إضافة ونشر درس جديد</h2>
-                  <p className="text-xs text-slate-400">اكتب اسم الدرس والفصل وأضف الفيديو من المعرض والملحقات المطلوبة</p>
+                  <p className="text-xs text-slate-400">اكتب اسم المحاضرة والفصل وأضف الفيديو والملحقات. المحاضرات الجديدة تُرتب تلقائياً وتُفتح بالتتابع بعد الواجب والامتحان.</p>
                 </div>
               </div>
             </div>
