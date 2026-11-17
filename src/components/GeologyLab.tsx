@@ -20,107 +20,151 @@ function material(color: number, roughness = 0.72, metalness = 0.05, opacity = 1
 
 function buildModel(key: ModelKey) {
   const root = new THREE.Group();
+  const addMesh = (geometry: THREE.BufferGeometry, color: number, position: [number,number,number], scale: [number,number,number] = [1,1,1], roughness = 0.78) => {
+    const mesh = new THREE.Mesh(geometry, material(color, roughness, 0.02));
+    mesh.position.set(...position); mesh.scale.set(...scale); root.add(mesh); return mesh;
+  };
+  const line = (points: THREE.Vector3[], color: number, radius = 0.018) => {
+    const curve = new THREE.CatmullRomCurve3(points);
+    const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(48, points.length * 3), radius, 8, false), material(color, 0.72));
+    root.add(mesh); return mesh;
+  };
+  const shellGeometry = (radius: number) => new THREE.SphereGeometry(radius, 96, 64, 0, Math.PI * 1.72, 0, Math.PI);
   if (key === 'earth') {
-    const shells = [
-      { r: 2.05, c: 0x4f8eae },
-      { r: 1.88, c: 0xc77b45 },
-      { r: 1.05, c: 0xf1a23a },
-      { r: 0.58, c: 0xffd36a }
+    // Radii are intentionally exaggerated for visibility; the order of layers is correct.
+    const layers = [
+      { r: 2.02, c: 0x557d8d },
+      { r: 1.78, c: 0xb86d43 },
+      { r: 1.02, c: 0xe58a32 },
+      { r: 0.36, c: 0xffd36a }
     ];
-    shells.forEach((s, i) => {
-      const geo = new THREE.SphereGeometry(s.r, 64, 48, 0, Math.PI * 1.58, 0, Math.PI);
-      const mesh = new THREE.Mesh(geo, material(s.c, 0.82, 0.02, i === 0 ? 0.95 : 1));
-      mesh.rotation.y = -0.42;
-      root.add(mesh);
+    layers.forEach((layer, i) => {
+      const mesh = new THREE.Mesh(shellGeometry(layer.r), material(layer.c, 0.86, 0.015));
+      mesh.rotation.y = -0.42; mesh.rotation.z = 0.08; root.add(mesh);
+      if (i === 0) {
+        const crustEdge = new THREE.Mesh(new THREE.TorusGeometry(2.015, 0.025, 10, 120), material(0x9ac4c7));
+        crustEdge.rotation.x = Math.PI / 2; crustEdge.position.y = -0.04; root.add(crustEdge);
+      }
     });
-    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(2.12, 48, 32), new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.12 }));
+    const outerBoundary = new THREE.Mesh(new THREE.SphereGeometry(1.025, 72, 48), new THREE.MeshBasicMaterial({color:0xffbd62,wireframe:true,transparent:true,opacity:.12}));
+    root.add(outerBoundary);
+    const innerGlow = new THREE.Mesh(new THREE.SphereGeometry(.37, 48, 32), new THREE.MeshPhysicalMaterial({color:0xffdf83,emissive:0x8a3d0a,emissiveIntensity:.22,roughness:.42,clearcoat:.35}));
+    root.add(innerGlow);
+    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(2.09, 64, 48), new THREE.MeshBasicMaterial({color:0x38bdf8,wireframe:true,transparent:true,opacity:.075}));
     root.add(atmosphere);
+    // A narrow cutaway edge makes the internal sequence legible.
+    const cutEdge = new THREE.Mesh(new THREE.TorusGeometry(1.12, .018, 8, 96), material(0xffd29a));
+    cutEdge.position.set(.05,0,.02); cutEdge.rotation.y=Math.PI/2.2; root.add(cutEdge);
   } else if (key === 'plates') {
-    const left = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.42, 2.5), material(0x3f8b83));
-    left.position.set(-1.05, 0.12, 0);
-    left.rotation.z = -0.045;
-    const right = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.42, 2.5), material(0x8c7358));
-    right.position.set(1.05, -0.02, 0);
-    right.rotation.z = 0.045;
-    root.add(left, right);
-    const mantle = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.72, 2.65), material(0xb85e3d, 0.95, 0, 0.45));
-    mantle.position.y = -0.52;
-    root.add(mantle);
-    const ridge = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.7, 24), material(0xf4a261));
-    ridge.position.set(0, 0.53, 0);
-    root.add(ridge);
-    root.add(new THREE.ArrowHelper(new THREE.Vector3(-1, 0, 0), new THREE.Vector3(-0.25, 0.75, 0), 0.72, 0x67e8f9, 0.22, 0.14));
-    root.add(new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0.25, 0.75, 0), 0.72, 0x67e8f9, 0.22, 0.14));
+    const crustMat = material(0x668c78, .9);
+    const left = new THREE.Mesh(new THREE.BoxGeometry(1.92,.34,2.55), crustMat);
+    left.position.set(-1.02,.23,0); left.rotation.z=-.025;
+    const right = new THREE.Mesh(new THREE.BoxGeometry(1.92,.34,2.55), material(0x9b8061,.92));
+    right.position.set(1.02,.23,0); right.rotation.z=.025;
+    root.add(left,right);
+    const mantle = new THREE.Mesh(new THREE.BoxGeometry(4.25,.9,2.7), material(0xb85e3d,.96,0,.42));
+    mantle.position.y=-.48; root.add(mantle);
+    const ridge = new THREE.Mesh(new THREE.CylinderGeometry(.1,.48,.44,48,1), material(0xe6a36a));
+    ridge.position.set(0,.54,0); root.add(ridge);
+    const magma = new THREE.Mesh(new THREE.CylinderGeometry(.13,.2,.66,32), material(0xf97316,.42));
+    magma.position.set(0,.22,0); root.add(magma);
+    for(let i=0;i<3;i++){
+      const x=-.22+i*.22;
+      const dike=new THREE.Mesh(new THREE.BoxGeometry(.035,.5,2.45),material(0xffa34d,.5));
+      dike.position.set(x,.42,0); root.add(dike);
+    }
+    root.add(new THREE.ArrowHelper(new THREE.Vector3(-1,0,0),new THREE.Vector3(-.2,.82,0),.66,0x67e8f9,.18,.12));
+    root.add(new THREE.ArrowHelper(new THREE.Vector3(1,0,0),new THREE.Vector3(.2,.82,0),.66,0x67e8f9,.18,.12));
+    // Mantle upwelling beneath a divergent boundary.
+    root.add(new THREE.ArrowHelper(new THREE.Vector3(0,1,0),new THREE.Vector3(0,-.86,0),.58,0xfbbf24,.18,.12));
   } else if (key === 'volcano') {
-    const mountain = new THREE.Mesh(new THREE.ConeGeometry(1.75, 2.55, 56, 1, false), material(0x80624e));
-    mountain.position.y = 0.45;
-    root.add(mountain);
-    const crater = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.12, 12, 48), material(0x3b2d28));
-    crater.rotation.x = Math.PI / 2;
-    crater.position.y = 1.74;
-    root.add(crater);
-    const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.24, 1.75, 24), material(0xf97316, 0.4, 0.1));
-    pipe.position.set(0, -0.2, 0);
-    root.add(pipe);
-    const chamber = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 24), material(0xef4444, 0.35, 0.05));
-    chamber.scale.set(1.35, 0.62, 1);
-    chamber.position.y = -1.2;
-    root.add(chamber);
-    for (let i = 0; i < 7; i++) {
-      const puff = new THREE.Mesh(new THREE.SphereGeometry(0.16 + (i % 3) * 0.05, 16, 12), new THREE.MeshStandardMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.45 }));
-      puff.position.set(Math.sin(i * 2.1) * 0.36, 1.95 + i * 0.19, Math.cos(i * 1.7) * 0.22);
-      root.add(puff);
+    // Stratovolcano profile with a summit crater and a central conduit.
+    const profile = [
+      new THREE.Vector2(0,-1.42),new THREE.Vector2(.55,-1.38),new THREE.Vector2(1.08,-.95),
+      new THREE.Vector2(1.48,-.28),new THREE.Vector2(1.7,.42),new THREE.Vector2(1.48,.86),
+      new THREE.Vector2(.92,1.22),new THREE.Vector2(.52,1.28),new THREE.Vector2(.38,1.12),
+      new THREE.Vector2(.25,1.02),new THREE.Vector2(.12,1.08),new THREE.Vector2(0,1.08)
+    ];
+    const cone = new THREE.Mesh(new THREE.LatheGeometry(profile,96), material(0x80624e,.94));
+    cone.position.y=.08; root.add(cone);
+    for(let j=0;j<5;j++){
+      const y=-.72+j*.36, r=1.18-j*.18;
+      const pts:THREE.Vector3[]=[];
+      for(let i=0;i<=80;i++){const t=i/80*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(t)*r,y+Math.sin(t*3+j)*.025,Math.sin(t)*r));}
+      line(pts,j%2?0xb58a65:0x59463c,.012);
+    }
+    const crater = new THREE.Mesh(new THREE.TorusGeometry(.34,.09,16,72), material(0x332b27,.98));
+    crater.rotation.x=Math.PI/2; crater.position.y=1.18; root.add(crater);
+    const throat = new THREE.Mesh(new THREE.CylinderGeometry(.14,.2,1.95,32), material(0xef6a32,.45));
+    throat.position.set(0,-.08,0); root.add(throat);
+    const chamber = new THREE.Mesh(new THREE.SphereGeometry(.58,48,32), material(0xd94a32,.38));
+    chamber.scale.set(1.55,.72,1.15); chamber.position.set(0,-1.18,0); root.add(chamber);
+    const sideDike = new THREE.Mesh(new THREE.BoxGeometry(.09,.9,.1),material(0xe8753c,.42));
+    sideDike.position.set(.72,-.36,0); sideDike.rotation.z=-.62; root.add(sideDike);
+    for(let i=0;i<7;i++){
+      const puff=new THREE.Mesh(new THREE.SphereGeometry(.13+(i%3)*.045,20,14),new THREE.MeshStandardMaterial({color:0x9aa6ad,transparent:true,opacity:.3,roughness:1}));
+      puff.position.set(Math.sin(i*2.1)*.36,1.42+i*.16,Math.cos(i*1.7)*.22);root.add(puff);
     }
   } else if (key === 'rocks') {
-    const rocks = [
-      { x: -1.55, c: 0x6d7f8b, label: 'نارية' },
-      { x: -0.52, c: 0xc5a16b, label: 'رسوبية' },
-      { x: 0.52, c: 0x8c6e9d, label: 'متحولة' },
-      { x: 1.55, c: 0x647d64, label: 'صهارة' }
-    ];
-    rocks.forEach((r, i) => {
-      const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.58, 1), material(r.c));
-      mesh.position.set(r.x, 0.18, 0);
-      mesh.rotation.set(0.2 + i * 0.15, i * 0.55, 0.15);
-      mesh.scale.set(1.05, 0.8 + (i % 2) * 0.25, 0.9);
-      root.add(mesh);
-    });
-    root.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(-1.0, -0.65, 0), 0.62, 0x67e8f9, 0.18, 0.12));
-    root.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0.95, -0.65, 0), 0.62, 0x67e8f9, 0.18, 0.12));
+    // Distinctive teaching specimens: granite, layered sandstone, banded gneiss and basalt.
+    const granite=addMesh(new THREE.DodecahedronGeometry(.62,2),0x777b80,[-1.48,.08,0],[1.08,.82,.9]);
+    granite.rotation.set(.3,.6,.1);
+    for(let i=0;i<75;i++){
+      const p=new THREE.Vector3((Math.sin(i*12.31)*.48)-1.48,(Math.cos(i*7.7)*.34)+.08,(Math.sin(i*4.17)*.38));
+      addMesh(new THREE.SphereGeometry(.018+(i%4)*.004,8,6),[0xd7c6a1,0x2d3034,0xb7a4a0][i%3],[p.x,p.y,p.z]);
+    }
+    const sandstone=addMesh(new THREE.DodecahedronGeometry(.58,1),0xb98b57,[-.48,.06,0],[.92,.8,.86]);
+    sandstone.rotation.set(.15,.2,.1);
+    for(let j=0;j<5;j++){
+      const y=-.28+j*.14, pts:THREE.Vector3[]=[];
+      for(let i=0;i<=32;i++){const t=i/32*Math.PI*2;pts.push(new THREE.Vector3(-.48+Math.cos(t)*(.48-j*.018),.06+y+Math.sin(t)*(.38-j*.014),Math.sin(t)*.42));}
+      line(pts,0xe3c08c,.012);
+    }
+    const gneiss=addMesh(new THREE.DodecahedronGeometry(.57,1),0x77707c,[.52,.05,0],[.96,.82,.88]);
+    gneiss.rotation.set(.2,.4,.25);
+    for(let j=0;j<7;j++){
+      const pts:THREE.Vector3[]=[];
+      for(let i=0;i<=28;i++){const t=i/28*Math.PI*2;pts.push(new THREE.Vector3(.52+Math.cos(t)*(.48-j*.025),.05+Math.sin(t)*(.36-j*.018)+Math.sin(t*2)*.025,Math.sin(t)*.42));}
+      line(pts,j%2?0xe0c7b2:0x393943,.018);
+    }
+    const basalt=addMesh(new THREE.CylinderGeometry(.42,.48,.9,6,1),0x454d54,[1.52,.04,0],[1,.92,.9]);
+    basalt.rotation.set(.1,.35,.1);
+    for(let i=0;i<3;i++){
+      const col=new THREE.Mesh(new THREE.CylinderGeometry(.11,.13,.72,6),material(0x687078,.92));
+      col.position.set(1.52+(i-1)*.2,-.02,.35);col.rotation.z=(i-1)*.07;root.add(col);
+    }
   } else if (key === 'fossils') {
-    const pts: THREE.Vector3[] = [];
-    for (let i = 0; i < 180; i++) {
-      const t = i / 179 * Math.PI * 5.5;
-      const r = 0.08 + i / 179 * 0.9;
-      pts.push(new THREE.Vector3(Math.cos(t) * r, Math.sin(t) * r, 0.08 * Math.sin(t * 2)));
+    // Ribbed ammonite-like shell with a visible logarithmic spiral.
+    const pts:THREE.Vector3[]=[];
+    for(let i=0;i<260;i++){const t=i/259*Math.PI*6.4;const r=.055*Math.exp(i/259*2.55);pts.push(new THREE.Vector3(Math.cos(t)*r,Math.sin(t)*r,.05*Math.sin(t*2)));}
+    const curve=new THREE.CatmullRomCurve3(pts);
+    root.add(new THREE.Mesh(new THREE.TubeGeometry(curve,320,.095,12,false),material(0xd8b98b,.72)));
+    for(let i=0;i<24;i++){
+      const t=i/24*Math.PI*6.4,r=.055*Math.exp(i/24*2.55);
+      const center=new THREE.Vector3(Math.cos(t)*r,Math.sin(t)*r,0);
+      const tangent=new THREE.Vector3(-Math.sin(t),Math.cos(t),0).normalize();
+      const ribPts=[center.clone().addScaledVector(tangent,-.12),center.clone(),center.clone().addScaledVector(tangent,.12)];
+      line(ribPts,0xf0d9b4,.018);
     }
-    const curve = new THREE.CatmullRomCurve3(pts);
-    const shell = new THREE.Mesh(new THREE.TubeGeometry(curve, 220, 0.075, 8, false), material(0xd8b98b));
-    root.add(shell);
-    const body = new THREE.Mesh(new THREE.SphereGeometry(0.28, 24, 16), material(0x9b8061));
-    body.position.set(0.95, -0.08, 0);
-    body.scale.set(1.2, 0.7, 0.65);
-    root.add(body);
-    for (let i = 0; i < 8; i++) {
-      const rib = new THREE.Mesh(new THREE.TorusGeometry(0.18 + i * 0.055, 0.018, 6, 32), material(0xe8cda4));
-      rib.position.set(-0.08, 0, 0.12 + i * 0.012);
-      rib.scale.set(1, 0.85, 0.55);
-      root.add(rib);
-    }
+    const body=addMesh(new THREE.SphereGeometry(.23,32,24),0x8c745d,[.9,-.08,0],[1.5,.7,.7]);
+    body.rotation.z=-.2;
+    const aperture=addMesh(new THREE.SphereGeometry(.12,20,16),0x4b3c32,[1.18,-.08,.02],[1.1,.75,.65]);
   } else {
-    const crystalA = new THREE.Mesh(new THREE.OctahedronGeometry(0.88, 0), material(0x7dd3fc, 0.22, 0.25, 0.88));
-    crystalA.position.set(-0.9, 0.05, 0);
-    crystalA.scale.set(0.8, 1.35, 0.8);
-    const crystalB = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.85, 0.85), material(0xe5c07b, 0.34, 0.15));
-    crystalB.position.set(0.82, -0.1, 0);
-    crystalB.rotation.set(0.25, 0.45, 0.15);
-    const crystalC = new THREE.Mesh(new THREE.DodecahedronGeometry(0.56, 0), material(0x9f8ad4, 0.28, 0.18));
-    crystalC.position.set(0, -0.75, 0.55);
-    root.add(crystalA, crystalB, crystalC);
+    // Quartz prism, halite cube and calcite rhombohedron; crystal habits are schematic.
+    const quartz = new THREE.Group();
+    const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,1.1,6,1),new THREE.MeshPhysicalMaterial({color:0x83c9e8,roughness:.18,metalness:.05,transmission:.16,transparent:true,opacity:.88,clearcoat:1}));
+    shaft.position.y=.1;quartz.add(shaft);
+    const tip=new THREE.Mesh(new THREE.ConeGeometry(.3,.42,6),new THREE.MeshPhysicalMaterial({color:0xb4e6f7,roughness:.16,transparent:true,opacity:.9,clearcoat:1}));
+    tip.position.y=.86;quartz.add(tip);quartz.position.set(-1.05,-.02,0);quartz.rotation.z=.08;root.add(quartz);
+    const halite=addMesh(new THREE.BoxGeometry(.8,.8,.8),0xd9d9d0,[.05,-.08,0],[1,1,1]);
+    halite.rotation.set(.18,.35,.12);
+    const calcite=addMesh(new THREE.BoxGeometry(.78,.78,.78),0xe7c58a,[1.08,-.12,.18],[1,.72,.82]);
+    calcite.rotation.set(.35,.48,.2);
+    const calciteEdges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.78,.78,.78)),new THREE.LineBasicMaterial({color:0xffe6b8,transparent:true,opacity:.8}));
+    calciteEdges.position.copy(calcite.position);calciteEdges.rotation.copy(calcite.rotation);calciteEdges.scale.copy(calcite.scale);root.add(calciteEdges);
   }
   return root;
 }
-
 export const GeologyLab: React.FC = () => {
   const host = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<ModelKey>('earth');
