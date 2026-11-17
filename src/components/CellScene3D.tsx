@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 
 type Props = { kind: 'animal' | 'plant'; selected: string; onSelect: (id:string)=>void };
@@ -41,19 +42,41 @@ export const CellScene3D: React.FC<Props> = ({kind,selected,onSelect}) => {
     scene.add(new THREE.AmbientLight(0xffffff,1.6));
     const key=new THREE.DirectionalLight(0xb8fff0,2.4); key.position.set(3,4,5); scene.add(key);
     const rim=new THREE.PointLight(0x0ea5a4,18); rim.position.set(-3,-2,-2); scene.add(rim);
-    const shellGeo=new THREE.SphereGeometry(1,64,48);
-    const shellMat=new THREE.MeshPhysicalMaterial({color:kind==='plant'?0x2f9c67:0x16a39a,transparent:true,opacity:.18,roughness:.24,metalness:.05,side:THREE.DoubleSide,clearcoat:.9});
-    const shell=new THREE.Mesh(shellGeo,shellMat); shell.scale.set(kind==='plant'?1.25:1.12,kind==='plant'?.86:1,kind==='plant'?.78:.88); root.add(shell);
-    const inner=new THREE.Mesh(new THREE.SphereGeometry(.94,48,32),new THREE.MeshStandardMaterial({color:0x1c786d,transparent:true,opacity:.18,roughness:.8}));
-    inner.scale.copy(shell.scale).multiplyScalar(.94); root.add(inner);
+    renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.08;
+    const shellMat=new THREE.MeshPhysicalMaterial({color:kind==='plant'?0x2f9c67:0x16a39a,transparent:true,opacity:.2,roughness:.22,metalness:.02,side:THREE.DoubleSide,clearcoat:1,depthWrite:false});
+    if(kind==='plant'){
+      root.add(new THREE.Mesh(new RoundedBoxGeometry(2.35,1.78,1.62,8,.16),new THREE.MeshStandardMaterial({color:0x3d8954,roughness:.86,transparent:true,opacity:.42})));
+      root.add(new THREE.Mesh(new RoundedBoxGeometry(2.22,1.65,1.5,8,.14),shellMat));
+    }else{
+      const shell=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),shellMat);shell.scale.set(1.18,1.02,.9);root.add(shell);
+      const membrane=new THREE.Mesh(new THREE.SphereGeometry(.985,72,48),new THREE.MeshBasicMaterial({color:0x72e3d2,wireframe:true,transparent:true,opacity:.13}));membrane.scale.copy(shell.scale);root.add(membrane);
+    }
+    const cytoplasm=new THREE.Mesh(new THREE.SphereGeometry(.92,64,48),new THREE.MeshStandardMaterial({color:0x2b8d7b,transparent:true,opacity:.12,roughness:.9,depthWrite:false}));cytoplasm.scale.set(1.05,.88,.78);root.add(cytoplasm);
     const visible=parts.filter(p=>kind==='plant'?p.id!=='lysosome':!['chloroplast','vacuole'].includes(p.id));
+    const mat=(color:number)=>new THREE.MeshPhysicalMaterial({color,roughness:.34,metalness:.015,clearcoat:.75});
     visible.forEach(p=>{
-      const mesh=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),new THREE.MeshPhysicalMaterial({color:p.color,roughness:.34,metalness:.04,clearcoat:.7}));
-      mesh.position.set(...p.pos as [number,number,number]); mesh.scale.set(...p.scale as [number,number,number]); mesh.userData.partId=p.id; mesh.userData.baseColor=p.color; root.add(mesh);
-      if(p.id==='mitochondria'||p.id==='chloroplast'){
-        const groove=new THREE.Mesh(new THREE.TorusGeometry(.19,.018,8,36),new THREE.MeshBasicMaterial({color:p.id==='mitochondria'?0x7c2d12:0x14532d}));
-        groove.position.copy(mesh.position); groove.rotation.y=.8; groove.scale.set(1.25,.65,.8); root.add(groove);
+      const g=new THREE.Group();g.position.set(...p.pos as [number,number,number]);g.scale.set(...p.scale as [number,number,number]);g.userData.partId=p.id;
+      const base=new THREE.Mesh(new THREE.SphereGeometry(1,40,28),mat(p.color));base.userData.partId=p.id;g.add(base);
+      if(p.id==='nucleus'){
+        const env=new THREE.Mesh(new THREE.SphereGeometry(.91,40,28),new THREE.MeshPhysicalMaterial({color:0xc4b5fd,transparent:true,opacity:.28,side:THREE.DoubleSide}));env.userData.partId=p.id;g.add(env);
+        const nucleolus=new THREE.Mesh(new THREE.SphereGeometry(.25,28,20),mat(0x6d4bb5));nucleolus.position.set(.2,-.12,.72);nucleolus.userData.partId=p.id;g.add(nucleolus);
+        for(let i=0;i<18;i++){const t=i/18*Math.PI*2;const pore=new THREE.Mesh(new THREE.SphereGeometry(.035,8,6),new THREE.MeshBasicMaterial({color:0xf0eaff}));pore.position.set(Math.cos(t)*.86,Math.sin(t)*.86,.05);pore.userData.partId=p.id;g.add(pore);}
       }
+      if(p.id==='mitochondria'){
+        for(let i=0;i<5;i++){const pts:THREE.Vector3[]=[];for(let j=0;j<=32;j++){const x=-.78+j/32*1.56;pts.push(new THREE.Vector3(x,Math.sin(j/32*Math.PI*7+i*.8)*.19,(i-2)*.22));}const crista=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),80,.035,8,false),mat(0x7c2d12));crista.userData.partId=p.id;g.add(crista);}
+      }
+      if(p.id==='er'){
+        for(let i=0;i<7;i++){const pts:THREE.Vector3[]=[];for(let j=0;j<=24;j++){const x=-.9+j/24*1.8;pts.push(new THREE.Vector3(x,Math.sin(j/24*Math.PI*2+i*.72)*.2,(i-3)*.11));}const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),64,.035,7,false),mat(i%2?0x38bdf8:0x1d8eaf));tube.userData.partId=p.id;g.add(tube);}
+      }
+      if(p.id==='golgi'){
+        for(let i=0;i<6;i++){const sac=new THREE.Mesh(new THREE.TorusGeometry(.52-i*.055,.075,10,48,Math.PI*1.45),mat(i%2?0xf9a8d4:0xc45b9b));sac.rotation.z=-.18+i*.065;sac.position.y=(i-2.5)*.16;sac.userData.partId=p.id;g.add(sac);}
+        for(let i=0;i<5;i++){const ves=new THREE.Mesh(new THREE.SphereGeometry(.07,12,8),mat(0xf9a8d4));ves.position.set(.55+i*.09,-.38-i*.035,.12);ves.userData.partId=p.id;g.add(ves);}
+      }
+      if(p.id==='ribosome'){for(let i=0;i<28;i++){const t=i*2.399,r=.25*Math.sqrt(i/28),bead=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),mat(0xffe27a));bead.position.set(Math.cos(t)*r,Math.sin(t)*r,Math.sin(i*1.7)*.1);bead.userData.partId=p.id;g.add(bead);}}
+      if(p.id==='lysosome'){for(let i=0;i<9;i++){const granule=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),mat(0x9f3455));granule.position.set(Math.sin(i*2.1)*.48,Math.cos(i*1.4)*.42,Math.sin(i)*.35);granule.userData.partId=p.id;g.add(granule);}}
+      if(p.id==='chloroplast'){for(let a=0;a<5;a++)for(let b=0;b<5;b++){const disc=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.045,20),mat(0x14532d));disc.rotation.x=Math.PI/2;disc.position.set((a-2)*.28,(b-2)*.08,.12*Math.sin(a));disc.userData.partId=p.id;g.add(disc);}}
+      if(p.id==='vacuole'){base.material=new THREE.MeshPhysicalMaterial({color:0x67d9ed,transparent:true,opacity:.34,roughness:.12,transmission:.22,clearcoat:1});const tonoplast=new THREE.Mesh(new THREE.SphereGeometry(.96,32,24),new THREE.MeshBasicMaterial({color:0x9cecf5,wireframe:true,transparent:true,opacity:.22}));tonoplast.userData.partId=p.id;g.add(tonoplast);}
+      root.add(g);
     });
     const stars=new THREE.Points(new THREE.BufferGeometry().setFromPoints(Array.from({length:100},()=>new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*5,(Math.random()-.5)*3))),new THREE.PointsMaterial({color:0x6ee7b7,size:.018,transparent:true,opacity:.55}));
     scene.add(stars);
@@ -61,7 +84,7 @@ export const CellScene3D: React.FC<Props> = ({kind,selected,onSelect}) => {
     const pointerDown=(e:PointerEvent)=>{down=true;moved=false;px=e.clientX;py=e.clientY;renderer.domElement.setPointerCapture(e.pointerId);setDragging(true);};
     const pointerMove=(e:PointerEvent)=>{if(!down)return;const dx=e.clientX-px,dy=e.clientY-py;if(Math.abs(dx)+Math.abs(dy)>3)moved=true;root.rotation.y+=dx*.008;root.rotation.x+=dy*.008;px=e.clientX;py=e.clientY;};
     const pointerUp=()=>{down=false;setDragging(false);};
-    const pointerClick=(e:PointerEvent)=>{if(moved)return;const rect=renderer.domElement.getBoundingClientRect();const mouse=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);const ray=new THREE.Raycaster();ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects(root.children,false);const hit=hits.find(h=>h.object.userData.partId);if(hit?.object.userData.partId)onSelect(hit.object.userData.partId);};
+    const pointerClick=(e:PointerEvent)=>{if(moved)return;const rect=renderer.domElement.getBoundingClientRect();const mouse=new THREE.Vector2(((e.clientX-rect.left)/rect.width)*2-1,-((e.clientY-rect.top)/rect.height)*2+1);const ray=new THREE.Raycaster();ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects(root.children,true);const hit=hits.find(h=>h.object.userData.partId);if(hit?.object.userData.partId)onSelect(hit.object.userData.partId);};
     renderer.domElement.addEventListener('pointerdown',pointerDown);
     renderer.domElement.addEventListener('pointermove',pointerMove);
     renderer.domElement.addEventListener('pointerup',pointerUp);
