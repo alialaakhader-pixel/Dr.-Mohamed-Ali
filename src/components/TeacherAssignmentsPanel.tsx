@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Loader2, Plus, Save, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
-import { TeacherAssignment } from '../types';
+import { TeacherAssignment, Lesson } from '../types';
 import * as api from '../services/api';
 import { formatCairo } from '../utils/progress';
 
@@ -23,11 +23,12 @@ function isoToCairoLocal(iso: string | null): string {
   return f.replace(' ', 'T');
 }
 
-export const TeacherAssignmentsPanel: React.FC = () => {
+export const TeacherAssignmentsPanel: React.FC<{ lessons: Lesson[] }> = ({ lessons }) => {
   const [list, setList] = useState<TeacherAssignment[] | null>(null);
   const [error, setError] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [grade, setGrade] = useState('3ث');
+  const [lessonId, setLessonId] = useState('');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [due, setDue] = useState('');
@@ -43,21 +44,21 @@ export const TeacherAssignmentsPanel: React.FC = () => {
   }, []);
   useEffect(() => { load(); }, [load]);
 
-  const reset = () => { setEditId(null); setTitle(''); setBody(''); setDue(''); setPublished(true); setGrade('3ث'); };
+  const reset = () => { setEditId(null); setTitle(''); setBody(''); setDue(''); setPublished(true); setGrade('3ث'); setLessonId(''); };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy) return;
     setBusy(true); setError(''); setNote('');
     try {
-      await api.teacherSaveAssignment({ id: editId, grade, title, body, dueAt: cairoLocalToIso(due), published });
+      await api.teacherSaveAssignment({ id: editId, grade, title, body, dueAt: cairoLocalToIso(due), published, lessonId: lessonId || null });
       setNote('تم حفظ الواجب.'); reset(); await load();
     } catch (err: any) { setError(err.message); }
     setBusy(false);
   };
 
   const edit = (a: TeacherAssignment) => {
-    setEditId(a.id); setGrade(a.grade); setTitle(a.title); setBody(a.body); setDue(isoToCairoLocal(a.dueAt)); setPublished(a.published);
+    setEditId(a.id); setGrade(a.grade); setTitle(a.title); setBody(a.body); setDue(isoToCairoLocal(a.dueAt)); setPublished(a.published); setLessonId(a.lessonId || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -79,6 +80,10 @@ export const TeacherAssignmentsPanel: React.FC = () => {
             {GRADES.map(g => <option key={g} value={g}>{g === 'جميع الصفوف' ? g : g === '1ث' ? 'أولى ثانوي' : g === '2ث' ? 'تانية ثانوي' : 'تالتة ثانوي'}</option>)}
           </select>
         </div>
+        <select className={inp} value={lessonId} onChange={e => setLessonId(e.target.value)}>
+          <option value="">واجب مستقل (بدون ربط بمحاضرة)</option>
+          {lessons.filter(l => l.grade === grade || grade === 'جميع الصفوف').map(l => <option key={l.id} value={l.id}>{l.chapter} · {l.title}</option>)}
+        </select>
         <textarea className={inp} rows={4} placeholder="نص الواجب / الأسئلة" value={body} onChange={e => setBody(e.target.value)} />
         <div className="grid sm:grid-cols-2 gap-3 items-center">
           <label className="text-[11px] text-slate-400">موعد التسليم (بتوقيت القاهرة)
@@ -104,7 +109,7 @@ export const TeacherAssignmentsPanel: React.FC = () => {
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="font-bold text-sm">{a.title} <span className={`text-[10px] px-2 py-0.5 rounded-full ${a.published ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-700 text-slate-300'}`}>{a.published ? 'منشور' : 'مسودة'}</span></div>
-              <div className="text-[11px] text-slate-400 mt-0.5">الصف: {a.grade} · التسليم: {a.dueAt ? formatCairo(a.dueAt) : 'غير محدد'} · {a.submissions.length} تسليم</div>
+              <div className="text-[11px] text-slate-400 mt-0.5">الصف: {a.grade} · المحاضرة: {a.lessonId ? (lessons.find(l => l.id === a.lessonId)?.title || 'محاضرة') : 'مستقل'} · التسليم: {a.dueAt ? formatCairo(a.dueAt) : 'غير محدد'} · {a.submissions.length} تسليم</div>
             </div>
             <div className="flex gap-2 shrink-0">
               <button onClick={() => edit(a)} className="px-3 py-1.5 rounded-lg bg-slate-800 text-[11px] inline-flex items-center gap-1"><Pencil className="w-3 h-3" /> تعديل</button>
