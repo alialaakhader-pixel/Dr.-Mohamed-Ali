@@ -13,7 +13,15 @@ export const DISPLAY = '"Lalezar","Cairo","Tajawal","Segoe UI",Tahoma,Arial,sans
 export const FONT = '"Cairo","Tajawal","Segoe UI",Tahoma,Arial,sans-serif';
 const ar = (n: number) => n.toLocaleString('en-US');
 
-export const loadPhoto = () => Promise.resolve(null);
+export const loadPhoto = (source?: string): Promise<HTMLImageElement | null> => {
+  if (!source) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = source;
+  });
+}
 
 export function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
