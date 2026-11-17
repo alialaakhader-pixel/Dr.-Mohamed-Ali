@@ -24,14 +24,16 @@ export const ExamsView: React.FC<ExamsViewProps> = ({ exams, results, currentStu
   const [left, setLeft] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [retryingId, setRetryingId] = useState<string | null>(null);
   const submittedRef = useRef(false);
 
   const resultOf = (id: string) => results.find(r => r.examId === id);
   const active = exams.find(e => e.id === activeId) || null;
-  const activeResult = activeId ? resultOf(activeId) : undefined;
+  const activeResult = activeId && retryingId !== activeId ? resultOf(activeId) : undefined;
 
   const start = (exam: Exam) => {
     submittedRef.current = false;
+    setRetryingId(exam.id);
     setAnswers(exam.questions.map(() => null));
     setLeft(Math.max(1, exam.durationMin) * 60);
     setError('');
@@ -54,6 +56,8 @@ export const ExamsView: React.FC<ExamsViewProps> = ({ exams, results, currentStu
     if (!r.ok) {
       submittedRef.current = false;
       setError(r.error || 'تعذر تسليم الامتحان.');
+    } else {
+      setRetryingId(null);
     }
   };
 
@@ -202,7 +206,7 @@ export const ExamsView: React.FC<ExamsViewProps> = ({ exams, results, currentStu
         </div>
         <div>
           <h2 className="text-2xl font-display font-black">الامتحانات</h2>
-          <p className="text-xs text-slate-400">بتتصحح تلقائياً وتتحفظ درجتك في حسابك. لكل امتحان محاولة واحدة.</p>
+          <p className="text-xs text-slate-400">بتتصحح تلقائياً. لو لم تتجاوز 50٪ تقدر تعيد المحاولة حتى تنجح.</p>
         </div>
       </div>
 
@@ -220,17 +224,23 @@ export const ExamsView: React.FC<ExamsViewProps> = ({ exams, results, currentStu
                   <h3 className="font-bold text-sm leading-snug">{ex.title}</h3>
                   {r && <Award className="w-5 h-5 text-emerald-400 shrink-0" />}
                 </div>
-                <p className="text-xs text-slate-400">{ex.locked ? 'ضمن باقة اشتراك' : `${ex.questions.length} سؤال`} · {ex.durationMin} دقيقة</p>
+                <p className="text-xs text-slate-400">{ex.locked ? (ex.lockedReason === 'PREREQUISITES' ? 'افتح المحاضرة أولاً' : 'ضمن باقة اشتراك') : `${ex.questions.length} سؤال`} · {ex.durationMin} دقيقة</p>
                 {ex.locked ? (
                   <div className="mt-auto rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-xs font-bold py-2.5 text-center">
-                    🔒 فعّل اشتراكك من لوحة الطالب ← اشتراكي
+                    {ex.lockedReason === 'PREREQUISITES' ? '🔒 أكمل متطلبات المحاضرة السابقة أولاً' : '🔒 فعّل اشتراكك من لوحة الطالب ← اشتراكي'}
                   </div>
-                ) : r ? (
+                ) : r && r.total > 0 && r.score * 2 > r.total ? (
                   <div className="flex items-center justify-between mt-auto">
                     <span className="text-lg font-black font-mono text-emerald-400">{r.score} / {r.total}</span>
-                    <button onClick={() => setActiveId(ex.id)} className="text-xs font-bold text-emerald-400 hover:text-emerald-300">
-                      مراجعة الإجابات
-                    </button>
+                    <button onClick={() => { setRetryingId(null); setActiveId(ex.id); }} className="text-xs font-bold text-emerald-400 hover:text-emerald-300">مراجعة الإجابات</button>
+                  </div>
+                ) : r ? (
+                  <div className="mt-auto space-y-2">
+                    <div className="flex items-center justify-between text-xs"><span className="text-amber-300">لم تتجاوز 50٪ — أعد المحاولة</span><span className="font-mono font-black text-amber-300">{r.score}/{r.total}</span></div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button onClick={() => { setRetryingId(null); setActiveId(ex.id); }} className="rounded-xl border border-slate-700 py-2 text-xs font-bold text-slate-300">مراجعة</button>
+                      <button onClick={() => start(ex)} className="rounded-xl bg-emerald-500 py-2 text-xs font-black text-slate-950">إعادة الامتحان</button>
+                    </div>
                   </div>
                 ) : (
                   <button
