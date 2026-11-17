@@ -79,7 +79,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
   const changePlanSubjects = (subject: SubjectType) => {
     const next = subjectKeys.includes(subject) ? subjectKeys.filter(x => x !== subject) : [...subjectKeys, subject];
     setSubjectKeys(next);
-    setSelLessons(ids => ids.filter(id => { const l = lessons.find(x => x.id === id); return !l || next.includes(l.subject || 'biology'); }));
+    setSelLessons(ids => ids.filter(id => { const l = lessons.find(x => x.id === id); return !!l && next.includes(l.subject || 'biology'); }));
     setSelExams(ids => ids.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!l && next.includes(l.subject || 'biology'); }));
   };
 
