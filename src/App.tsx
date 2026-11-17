@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { HomeHero } from './components/HomeHero';
-import { VideoPlayerView } from './components/VideoPlayerView';
+import { LecturesView } from './components/LecturesView';
 import { ForumView } from './components/ForumView';
 import { StudentDashboardView } from './components/StudentDashboardView';
 import { TeacherGate } from './components/TeacherGate';
@@ -295,6 +295,7 @@ export default function App() {
       return { ok: false, error: (r as any).error as string };
     }
     setExamResults(prev => [r.result, ...prev.filter(x => x.examId !== examId)]);
+    await loadStudent(currentStudent.codeUsed, currentStudent.grade);
     setLiveToast(`تم تصحيح الامتحان تلقائياً: ${r.result.score} / ${r.result.total} ✅`);
     return { ok: true, result: r.result };
   };
@@ -538,9 +539,9 @@ export default function App() {
         )}
 
         {activeTab === 'lessons' && !blocked && (
-          <VideoPlayerView
-            lesson={activeLesson}
-            allLessons={lessons}
+          <LecturesView
+            lessons={lessons}
+            selectedLessonId={selectedLessonId}
             onSelectLesson={(id) => setSelectedLessonId(id)}
             currentStudent={currentStudent}
             onOpenLoginModal={() => setShowStudentLoginModal(true)}
@@ -548,6 +549,8 @@ export default function App() {
             onMarkLessonCompleted={handleMarkLessonCompleted}
             onWatchProgress={handleWatchProgress}
             onOpenTeacherUpload={() => setActiveTab('teacher')}
+            onOpenAssignments={() => setActiveTab('learn')}
+            onOpenExams={() => setActiveTab('exams')}
           />
         )}
 
