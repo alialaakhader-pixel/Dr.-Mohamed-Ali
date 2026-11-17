@@ -70,10 +70,23 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     setSelLessons(p.lessonIds); setSelExams(p.examIds); setAi(p.includesAi); setActive(p.active); setImageData(p.imageData || null); setView('plans');
   };
   const toggle = (arr: string[], set: (v: string[]) => void, id: string) => set(arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
+  const changePlanGrade = (nextGrade: string) => {
+    const nextSubjects: SubjectType[] = nextGrade === '3ث' ? ['biology'] : nextGrade === 'بكالوريا' ? ['integrated_science'] : nextGrade === '' ? ['biology','geology'] : ['biology'];
+    setGrade(nextGrade); setSubjectKeys(nextSubjects);
+    setSelLessons(current => current.filter(id => { const l = lessons.find(x => x.id === id); return !!l && (!nextGrade || l.grade === nextGrade) && nextSubjects.includes(l.subject || 'biology'); }));
+    setSelExams(current => current.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!x && (!nextGrade || x.grade === nextGrade) && (!l || nextSubjects.includes(l.subject || 'biology')); }));
+  };
+  const changePlanSubjects = (subject: SubjectType) => setSubjectKeys(current => {
+    const next = current.includes(subject) ? current.filter(x => x !== subject) : [...current, subject];
+    setSelLessons(ids => ids.filter(id => { const l = lessons.find(x => x.id === id); return !l || next.includes(l.subject || 'biology'); }));
+    setSelExams(ids => ids.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !l || next.includes(l.subject || 'biology'); }));
+    return next;
+  });
 
   const savePlan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || Number(days) < 1) { setError('اكتب اسم الباقة ومدة صحيحة.'); return; }
+    if (!subjectKeys.length) { setError('اختَر مادة واحدة على الأقل للباقة.'); return; }
     run(async () => {
       const savedId = await api.teacherPlanSave({ id: editId, name: name.trim(), price: Number(price) || 0, days: Math.floor(Number(days)), grade, lessons: selLessons, exams: selExams, subjects: subjectKeys, ai, active });
       await api.teacherPlanImageSave(savedId, imageData);
@@ -179,14 +192,14 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
               <input value={days} onChange={e => setDays(e.target.value)} type="number" min={1} max={1100} placeholder="المدة بالأيام" className={inp} required />
             </div>
             <div className="grid sm:grid-cols-2 gap-2">
-              <select value={grade} onChange={e => { const next = e.target.value; setGrade(next); setSubjectKeys(next === "3ث" ? ["biology"] : next === "بكالوريا" ? ["integrated_science"] : next === "" ? ["biology","geology"] : ["biology"]); }} className={inp}>{GRADES.map(g => <option key={g.v} value={g.v}>{g.l}</option>)}</select>
+              <select value={grade} onChange={e => changePlanGrade(e.target.value)} className={inp}>{GRADES.map(g => <option key={g.v} value={g.v}>{g.l}</option>)}</select>
               <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={ai} onChange={e => setAi(e.target.checked)} /> تشمل المدرس الذكي</label>
             </div>
             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 space-y-2">
               <div className="text-xs font-black text-emerald-200">المواد التي يشملها الاشتراك</div>
               <div className="flex flex-wrap gap-3">
                 {subjectOptions.map(subject => <label key={subject} className="inline-flex items-center gap-2 text-xs text-slate-200">
-                  <input type="checkbox" checked={subjectKeys.includes(subject)} onChange={() => setSubjectKeys(current => current.includes(subject) ? current.filter(x => x !== subject) : [...current, subject])} />
+                  <input type="checkbox" checked={subjectKeys.includes(subject)} onChange={() => changePlanSubjects(subject)} />
                   {SUBJECT_LABELS[subject]}
                 </label>)}
               </div>
@@ -241,7 +254,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
                 </div>
                 <div className="flex-1 min-w-[10rem]">
                   <div className="font-black text-sm">{p.name} {!p.active && <span className="text-slate-500">(موقوفة)</span>}</div>
-                  <div className="text-slate-400">{p.price} ج.م · {p.durationDays} يوم · {p.grade || 'كل الصفوف'} · {(p.subjectKeys || []).map(k => SUBJECT_LABELS[k]).join(' + ') || 'باقة قديمة'} · {p.lessonIds.length} محاضرة · {p.examIds.length} امتحان{p.includesAi ? ' · AI' : ''} · {p.subscribers} مشترك نشط</div>
+                  <div className="text-slate-400">{p.price} ج.م · {p.durationDays} يوم · {p.grade || 'كل الصفوف'} · {(p.subjectKeys || []).map(k => SUBJECT_LABELS[k]).join(' + ') || 'باقة قديمة'} · {p.subjectKeys?.length ? 'محتوى المادة بالكامل' : `${p.lessonIds.length} محاضرة`} · {p.examIds.length} امتحان{p.includesAi ? ' · AI' : ''} · {p.subscribers} مشترك نشط</div>
                 </div>
                 <div className="w-full"><PlanPosterGallery plan={{ name: p.name, price: p.price, durationDays: p.durationDays, grade: p.grade, includesAi: p.includesAi, lessonCount: p.lessonIds.length, examCount: p.examIds.length }} /></div>
                 <div className="flex gap-2">
