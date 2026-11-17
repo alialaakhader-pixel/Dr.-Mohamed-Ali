@@ -175,6 +175,7 @@ export interface Exam {
   questions: ExamQuestion[];
   createdAt?: string;
   locked?: boolean;
+  lockedReason?: 'SUBSCRIPTION' | 'PREREQUISITES';
   lessonId?: string | null;
 }
 
