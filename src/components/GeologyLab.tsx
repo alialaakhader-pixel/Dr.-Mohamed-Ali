@@ -18,6 +18,37 @@ function material(color: number, roughness = 0.72, metalness = 0.05, opacity = 1
   return new THREE.MeshStandardMaterial({ color, roughness, metalness, transparent: opacity < 1, opacity, side: THREE.DoubleSide });
 }
 
+function makeRockTexture(base: string, seed: number) {
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 512;
+  const ctx = canvas.getContext('2d'); if (!ctx) return null;
+  ctx.fillStyle = base; ctx.fillRect(0,0,512,512);
+  let n = seed >>> 0;
+  const rand = () => { n = (n * 1664525 + 1013904223) >>> 0; return n / 4294967296; };
+  for (let i=0;i<14500;i++) {
+    const x=rand()*512,y=rand()*512,r=.35+rand()*3.8,a=.025+rand()*.22;
+    ctx.fillStyle=(rand()>.52?"rgba(245,235,215,":"rgba(12,18,22,")+a+")";
+    ctx.beginPath();ctx.ellipse(x,y,r,r*(.35+rand()*.9),rand()*Math.PI,0,Math.PI*2);ctx.fill();
+  }
+  for(let i=0;i<85;i++){
+    const x=rand()*512,y=rand()*512;ctx.strokeStyle="rgba(25,22,18,"+(.025+rand()*.075)+")";ctx.lineWidth=.5+rand()*2;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x+rand()*35,y+rand()*35,x-rand()*35,y+rand()*35,x+rand()*55-25,y+rand()*55-25);ctx.stroke();
+  }
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(1.5,1.5);texture.anisotropy=4;return texture;
+}
+function makeRockMaterial(base: string, seed: number) {
+  const map=makeRockTexture(base,seed);
+  return new THREE.MeshStandardMaterial({color:0xffffff,map:map||undefined,roughness:.94,bumpMap:map||undefined,bumpScale:.075});
+}
+function makeIrregularRock(radius:number, seed:number) {
+  const geometry=new THREE.IcosahedronGeometry(radius,5);const pos=geometry.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+    const wave=Math.sin(x*17+seed)*Math.cos(y*13-seed*.7)*Math.sin(z*15+seed*.3);
+    const fine=Math.sin(x*39+seed)*Math.sin(y*31+seed*2)*Math.cos(z*35);
+    const factor=1+wave*.045+fine*.012;pos.setXYZ(i,x*factor,y*factor,z*factor);
+  }
+  geometry.computeVertexNormals();return geometry;
+}
 function buildModel(key: ModelKey) {
   const root = new THREE.Group();
   const addMesh = (geometry: THREE.BufferGeometry, color: number, position: [number,number,number], scale: [number,number,number] = [1,1,1], roughness = 0.78) => {
@@ -107,27 +138,31 @@ function buildModel(key: ModelKey) {
     }
   } else if (key === 'rocks') {
     // Distinctive teaching specimens: granite, layered sandstone, banded gneiss and basalt.
-    const granite=addMesh(new THREE.DodecahedronGeometry(.62,2),0x777b80,[-1.48,.08,0],[1.08,.82,.9]);
+    const granite=addMesh(makeIrregularRock(.62,11),0xffffff,[-1.48,.08,0],[1.08,.82,.9]);
+    granite.material=makeRockMaterial('#777b80',11);
     granite.rotation.set(.3,.6,.1);
     for(let i=0;i<75;i++){
       const p=new THREE.Vector3((Math.sin(i*12.31)*.48)-1.48,(Math.cos(i*7.7)*.34)+.08,(Math.sin(i*4.17)*.38));
       addMesh(new THREE.SphereGeometry(.018+(i%4)*.004,8,6),[0xd7c6a1,0x2d3034,0xb7a4a0][i%3],[p.x,p.y,p.z]);
     }
-    const sandstone=addMesh(new THREE.DodecahedronGeometry(.58,1),0xb98b57,[-.48,.06,0],[.92,.8,.86]);
+    const sandstone=addMesh(makeIrregularRock(.58,23),0xffffff,[-.48,.06,0],[.92,.8,.86]);
+    sandstone.material=makeRockMaterial('#b98b57',23);
     sandstone.rotation.set(.15,.2,.1);
     for(let j=0;j<5;j++){
       const y=-.28+j*.14, pts:THREE.Vector3[]=[];
       for(let i=0;i<=32;i++){const t=i/32*Math.PI*2;pts.push(new THREE.Vector3(-.48+Math.cos(t)*(.48-j*.018),.06+y+Math.sin(t)*(.38-j*.014),Math.sin(t)*.42));}
       line(pts,0xe3c08c,.012);
     }
-    const gneiss=addMesh(new THREE.DodecahedronGeometry(.57,1),0x77707c,[.52,.05,0],[.96,.82,.88]);
+    const gneiss=addMesh(makeIrregularRock(.57,37),0xffffff,[.52,.05,0],[.96,.82,.88]);
+    gneiss.material=makeRockMaterial('#77707c',37);
     gneiss.rotation.set(.2,.4,.25);
     for(let j=0;j<7;j++){
       const pts:THREE.Vector3[]=[];
       for(let i=0;i<=28;i++){const t=i/28*Math.PI*2;pts.push(new THREE.Vector3(.52+Math.cos(t)*(.48-j*.025),.05+Math.sin(t)*(.36-j*.018)+Math.sin(t*2)*.025,Math.sin(t)*.42));}
       line(pts,j%2?0xe0c7b2:0x393943,.018);
     }
-    const basalt=addMesh(new THREE.CylinderGeometry(.42,.48,.9,6,1),0x454d54,[1.52,.04,0],[1,.92,.9]);
+    const basalt=addMesh(new THREE.CylinderGeometry(.42,.48,.9,6,5),0xffffff,[1.52,.04,0],[1,.92,.9]);
+    basalt.material=makeRockMaterial('#454d54',49);
     basalt.rotation.set(.1,.35,.1);
     for(let i=0;i<3;i++){
       const col=new THREE.Mesh(new THREE.CylinderGeometry(.11,.13,.72,6),material(0x687078,.92));
@@ -158,7 +193,9 @@ function buildModel(key: ModelKey) {
     tip.position.y=.86;quartz.add(tip);quartz.position.set(-1.05,-.02,0);quartz.rotation.z=.08;root.add(quartz);
     const halite=addMesh(new THREE.BoxGeometry(.8,.8,.8),0xd9d9d0,[.05,-.08,0],[1,1,1]);
     halite.rotation.set(.18,.35,.12);
-    const calcite=addMesh(new THREE.BoxGeometry(.78,.78,.78),0xe7c58a,[1.08,-.12,.18],[1,.72,.82]);
+    const calciteGeo=new THREE.BoxGeometry(.78,.78,.78);const cp=calciteGeo.attributes.position;
+    for(let i=0;i<cp.count;i++){const x=cp.getX(i),y=cp.getY(i),z=cp.getZ(i);cp.setXYZ(i,x+y*.24,y+z*.12,z+x*.08);}
+    calciteGeo.computeVertexNormals();const calcite=addMesh(calciteGeo,0xe7c58a,[1.08,-.12,.18],[1,.72,.82]);
     calcite.rotation.set(.35,.48,.2);
     const calciteEdges=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.78,.78,.78)),new THREE.LineBasicMaterial({color:0xffe6b8,transparent:true,opacity:.8}));
     calciteEdges.position.copy(calcite.position);calciteEdges.rotation.copy(calcite.rotation);calciteEdges.scale.copy(calcite.scale);root.add(calciteEdges);
@@ -183,11 +220,15 @@ export const GeologyLab: React.FC = () => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(el.clientWidth, el.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     el.appendChild(renderer.domElement);
-    const ambient = new THREE.AmbientLight(0xffffff, 1.65);
-    const keyLight = new THREE.DirectionalLight(0xffe4bd, 2.4);
+    const ambient = new THREE.HemisphereLight(0xe8f4ff, 0x30271f, 1.35);
+    const keyLight = new THREE.DirectionalLight(0xffe4bd, 3.2);
     keyLight.position.set(4, 5, 6);
-    const rimLight = new THREE.PointLight(0x38bdf8, 26, 12);
+    const rimLight = new THREE.PointLight(0x38bdf8, 34, 12);
     rimLight.position.set(-4, 1, -3);
     scene.add(ambient, keyLight, rimLight);
     const grid = new THREE.GridHelper(12, 24, 0x164e63, 0x12313d);
