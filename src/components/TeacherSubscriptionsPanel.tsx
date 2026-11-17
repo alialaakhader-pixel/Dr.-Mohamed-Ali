@@ -74,13 +74,13 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
     const nextSubjects: SubjectType[] = nextGrade === '3ث' ? ['biology'] : nextGrade === 'بكالوريا' ? ['integrated_science'] : nextGrade === '' ? ['biology','geology'] : ['biology'];
     setGrade(nextGrade); setSubjectKeys(nextSubjects);
     setSelLessons(current => current.filter(id => { const l = lessons.find(x => x.id === id); return !!l && (!nextGrade || l.grade === nextGrade) && nextSubjects.includes(l.subject || 'biology'); }));
-    setSelExams(current => current.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!x && (!nextGrade || x.grade === nextGrade) && (!l || nextSubjects.includes(l.subject || 'biology')); }));
+    setSelExams(current => current.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!x && !!l && (!nextGrade || x.grade === nextGrade) && nextSubjects.includes(l.subject || 'biology'); }));
   };
   const changePlanSubjects = (subject: SubjectType) => {
     const next = subjectKeys.includes(subject) ? subjectKeys.filter(x => x !== subject) : [...subjectKeys, subject];
     setSubjectKeys(next);
     setSelLessons(ids => ids.filter(id => { const l = lessons.find(x => x.id === id); return !l || next.includes(l.subject || 'biology'); }));
-    setSelExams(ids => ids.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !l || next.includes(l.subject || 'biology'); }));
+    setSelExams(ids => ids.filter(id => { const x = exams.find(e => e.id === id); const l = x?.lessonId ? lessons.find(v => v.id === x.lessonId) : undefined; return !!l && next.includes(l.subject || 'biology'); }));
   };
 
   const savePlan = (e: React.FormEvent) => {
@@ -109,7 +109,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
   const visibleLessons = lessons.filter(l => (!grade || l.grade === grade) && subjectKeys.includes(l.subject || 'biology'));
   const visibleExams = exams.filter(x => {
     const linked = x.lessonId ? lessons.find(l => l.id === x.lessonId) : undefined;
-    return (!grade || x.grade === grade) && (!linked || subjectKeys.includes(linked.subject || 'biology'));
+    return !!linked && (!grade || x.grade === grade) && subjectKeys.includes(linked.subject || 'biology');
   });
   const plans = data?.plans || [];
 
@@ -231,6 +231,7 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
               </div>
               <div>
                 <div className="text-xs font-bold text-slate-300 mb-1">الامتحانات داخل الباقة ({selExams.length})</div>
+                <p className="text-[10px] text-slate-500 mb-1">تظهر الامتحانات المرتبطة بمحاضرات المادة المختارة فقط.</p>
                 <div className="max-h-40 overflow-auto rounded-lg bg-slate-800 border border-slate-700 p-2 space-y-1">
                   {visibleExams.length === 0 && <div className="text-[11px] text-slate-500">لا توجد امتحانات لهذه المادة.</div>}
                   {visibleExams.map(x => <label key={x.id} className="flex items-center gap-2 text-xs"><input type="checkbox" checked={selExams.includes(x.id)} onChange={() => toggle(selExams, setSelExams, x.id)} /> {x.title}</label>)}
