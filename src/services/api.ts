@@ -1,6 +1,6 @@
 import type { ServerProgress, AssignmentItem, TeacherAssignment, StudentAnalyticsRow, TutorMessage, MySubscription, PlanCatalogItem, TeacherSubsOverview, StudyItem, StudySettings, StudyState, Mistake, MistakeNew, MistakeExamItem, MistakeExamResultItem, MistakeExamHistory, TeacherMistakesOverview } from '../types';
 import {
-  Lesson, StudentCode, StudentUser, ForumPost, ForumAnswer, PlatformNotification, GradeType,
+  Lesson, StudentCode, StudentUser, ForumPost, ForumAnswer, PlatformNotification, GradeType, SubjectType,
   Exam, ExamResult, ExamResultRow, Account, AccountInfo, ExamReviewItem
 } from '../types';
 
@@ -746,10 +746,10 @@ export async function teacherSubsOverview(): Promise<TeacherSubsOverview> {
   return r as TeacherSubsOverview;
 }
 
-export async function teacherPlanSave(p: { id?: string | null; name: string; price: number; days: number; grade: string; lessons: string[]; exams: string[]; ai: boolean; active: boolean }): Promise<string> {
+export async function teacherPlanSave(p: { id?: string | null; name: string; price: number; days: number; grade: string; lessons: string[]; exams: string[]; subjects: SubjectType[]; ai: boolean; active: boolean }): Promise<string> {
   const r = await rpc('ha_teacher_plan_save', {
     p_id: p.id || null, p_name: p.name, p_price: p.price, p_days: p.days, p_grade: p.grade,
-    p_lessons: p.lessons, p_exams: p.exams, p_ai: p.ai, p_active: p.active
+    p_lessons: p.lessons, p_exams: p.exams, p_ai: p.ai, p_active: p.active, p_subjects: p.subjects
   }, await teacherToken());
   if (!r?.ok || !r.id) throw new Error(subErr(r?.error));
   return String(r.id);
@@ -894,7 +894,7 @@ export async function teacherMistakesOverview(): Promise<TeacherMistakesOverview
   return r as TeacherMistakesOverview;
 }
 
-export interface PublicPlan { id: string; name: string; price: number; durationDays: number; grade: string | null; includesAi: boolean; lessonCount: number; examCount: number }
+export interface PublicPlan { id: string; name: string; price: number; durationDays: number; grade: string | null; subjectKeys: SubjectType[]; includesAi: boolean; lessonCount: number; examCount: number }
 export async function publicPlans(): Promise<PublicPlan[] | null> {
   try { const r = await rpc('ha_public_plans', {}); return Array.isArray(r) ? r : null; } catch { return null; }
 }
