@@ -721,7 +721,7 @@ const SUB_ERRORS: Record<string, string> = {
   UNAUTHORIZED: 'سجّل دخولك أولاً.',
   STUDENT_NOT_FOUND: 'كود الطالب غير موجود.',
   NOT_FOUND: 'العنصر غير موجود.',
-  INVALID: 'بيانات غير صالحة.', INVALID_SUBJECTS: 'اختيارات المواد غير متوافقة مع الصف الدراسي.'
+  INVALID: 'بيانات غير صالحة.',
   WRONG_SUBJECT: 'هذه الباقة لا تشمل مادة الصف الدراسي للطالب.',
   INVALID_SUBJECTS: 'تركيبة المواد والصف غير صحيحة.',
   LESSON_REQUIRED: 'يجب ربط الواجب بمحاضرة من المادة أولاً.'
