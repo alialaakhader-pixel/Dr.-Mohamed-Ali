@@ -125,6 +125,7 @@ export const GeologyLab: React.FC = () => {
   const host = useRef<HTMLDivElement>(null);
   const [model, setModel] = useState<ModelKey>('earth');
   const [dragging, setDragging] = useState(false);
+  const [resetNonce, setResetNonce] = useState(0);
   const active = useMemo(() => TOPICS.find(t => t.key === model) || TOPICS[0], [model]);
 
   useEffect(() => {
@@ -197,9 +198,9 @@ export const GeologyLab: React.FC = () => {
       renderer.dispose();
       if (renderer.domElement.parentElement === el) el.removeChild(renderer.domElement);
     };
-  }, [model]);
+  }, [model, resetNonce]);
 
-  const resetView = () => setModel(current => current);
+  const resetView = () => setResetNonce(value => value + 1);
   const icons: Record<ModelKey, React.ReactNode> = {
     earth: <Layers3 className="w-4 h-4" />,
     plates: <Mountain className="w-4 h-4" />,
