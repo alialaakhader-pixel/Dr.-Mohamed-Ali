@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BookOpen, Lock, PlayCircle, ClipboardCheck, FileQuestion, CheckCircle2, Clock3, Layers3, Sparkles } from 'lucide-react';
-import { Lesson, StudentUser } from '../types';
+import { Lesson, StudentUser, SubjectType } from '../types';
 import { VideoPlayerView } from './VideoPlayerView';
 
 interface Props {
@@ -23,9 +23,13 @@ export const LecturesView: React.FC<Props> = ({
   onOpenAssignments, onOpenExams
 }) => {
   const ordered = lessons.filter(l => !currentStudent || l.grade === currentStudent.grade || currentStudent.grade === 'بكالوريا' && l.grade === '3ث');
-  const chapters = Array.from(new Set(ordered.map(l => l.chapter?.trim() || 'محاضرات عامة')));
-  const available = ordered.filter(l => !l.locked);
-  const selected = ordered.find(l => l.id === selectedLessonId && !l.locked) || available[0] || null;
+  const [subjectFilter, setSubjectFilter] = useState<'all' | SubjectType>('all');
+  const subjects = Array.from(new Set(ordered.map(l => l.subject || 'biology')));
+  const filtered = subjectFilter === 'all' ? ordered : ordered.filter(l => (l.subject || 'biology') === subjectFilter);
+  const subjectNames: Record<SubjectType, string> = { biology: 'الأحياء', geology: 'الجيولوجيا', integrated_science: 'العلوم المتكاملة' };
+  const chapters = Array.from(new Set(filtered.map(l => l.chapter?.trim() || 'محاضرات عامة')));
+  const available = filtered.filter(l => !l.locked);
+  const selected = filtered.find(l => l.id === selectedLessonId && !l.locked) || available[0] || null;
   const completed = (l: Lesson) => !!currentStudent?.completedLessonIds?.includes(l.id) ||
     !!currentStudent?.watchHistory?.some(w => w.lessonId === l.id && w.completed);
 
@@ -63,7 +67,17 @@ export const LecturesView: React.FC<Props> = ({
         </div>
       </section>
 
-      {ordered.length === 0 ? (
+      {subjects.length > 1 && (
+        <div className="flex flex-wrap gap-2" aria-label="تصفية المحاضرات حسب المادة">
+          <button onClick={() => setSubjectFilter('all')} className={'rounded-xl px-4 py-2 text-xs font-black border transition ' + (subjectFilter === 'all' ? 'bg-emerald-400 text-slate-950 border-emerald-300' : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-emerald-400/50')}>كل المواد</button>
+          {subjects.map(subjectKey => (
+            <button key={subjectKey} onClick={() => setSubjectFilter(subjectKey)} className={'rounded-xl px-4 py-2 text-xs font-black border transition ' + (subjectFilter === subjectKey ? 'bg-emerald-400 text-slate-950 border-emerald-300' : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-emerald-400/50')}>
+              {subjectNames[subjectKey]}
+            </button>
+          ))}
+        </div>
+      )}
+      {filtered.length === 0 ? (
         <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-10 text-center">
           <BookOpen className="mx-auto h-10 w-10 text-emerald-400" />
           <h2 className="mt-4 text-lg font-black">لا توجد محاضرات منشورة حتى الآن</h2>
@@ -101,7 +115,7 @@ export const LecturesView: React.FC<Props> = ({
                           </span>
                         </div>
                         <div className="mt-4">
-                          <div className="text-[10px] text-slate-500">محاضرة {index + 1} · {item.grade}</div>
+                          <div className="text-[10px] text-slate-500">محاضرة {index + 1} · {item.grade} · {subjectNames[item.subject || "biology"]}</div>
                           <h3 className="mt-1 text-base font-black leading-6">{item.title}</h3>
                           <p className="mt-2 min-h-[40px] text-xs leading-5 text-slate-400 line-clamp-2">{item.description || item.unit}</p>
                         </div>
