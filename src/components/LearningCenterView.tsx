@@ -6,7 +6,7 @@ import { TutorView } from './TutorView';
 import { StudyLabView } from './StudyLabView';
 import { formatCairo } from '../utils/progress';
 
-interface Props { currentStudent: StudentUser | null; onOpenLoginModal: () => void }
+interface Props { currentStudent: StudentUser | null; onOpenLoginModal: () => void; onProgressChanged?: () => void }
 
 const AssignmentCard: React.FC<{ item: AssignmentItem; code: string; onChanged: () => void }> = ({ item, code, onChanged }) => {
   const [answer, setAnswer] = useState(item.answer || '');
@@ -73,7 +73,7 @@ const AssignmentCard: React.FC<{ item: AssignmentItem; code: string; onChanged: 
   );
 };
 
-export const LearningCenterView: React.FC<Props> = ({ currentStudent, onOpenLoginModal }) => {
+export const LearningCenterView: React.FC<Props> = ({ currentStudent, onOpenLoginModal, onProgressChanged }) => {
   const [tab, setTab] = useState<'assignments' | 'tutor' | 'lab'>('assignments');
   const [items, setItems] = useState<AssignmentItem[] | null>(null);
   const [error, setError] = useState('');
@@ -121,7 +121,7 @@ export const LearningCenterView: React.FC<Props> = ({ currentStudent, onOpenLogi
           {items === null && <div className="py-10 text-center text-slate-400 text-sm"><Loader2 className="w-5 h-5 animate-spin inline ml-2" />جاري التحميل…</div>}
           {error && <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs">{error}</div>}
           {items && items.length === 0 && !error && <div className="py-10 text-center text-slate-400 text-sm">لا توجد واجبات حالياً.</div>}
-          {items?.map(it => <AssignmentCard key={it.id} item={it} code={currentStudent.codeUsed} onChanged={load} />)}
+          {items?.map(it => <AssignmentCard key={it.id} item={it} code={currentStudent.codeUsed} onChanged={() => { load(); onProgressChanged?.(); }} />)}
         </div>
       )}
       {tab === 'tutor' && <TutorView student={currentStudent} />}
