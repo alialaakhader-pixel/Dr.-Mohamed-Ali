@@ -9,7 +9,8 @@ import { PlanPosterImg, templateFor } from './PlanPoster';
 const GRADES = [
   { id: '1ث', label: 'الصف الأول الثانوي', short: 'أولى ثانوي' },
   { id: '2ث', label: 'الصف الثاني الثانوي', short: 'ثانية ثانوي' },
-  { id: '3ث', label: 'الصف الثالث الثانوي', short: 'ثالثة ثانوي' }
+  { id: '3ث', label: 'الصف الثالث الثانوي', short: 'ثالثة ثانوي' },
+  { id: 'بكالوريا', label: 'الصف الأول بكالوريا', short: 'أولى بكالوريا' }
 ];
 
 const PAY_STATUS: Record<string, string> = { pending: 'قيد المراجعة', approved: 'تم القبول', rejected: 'مرفوض' };
@@ -136,6 +137,7 @@ const GradeColumn: React.FC<{
               <span className="font-black text-emerald-300">{p.price > 0 ? `${p.price} ج.م` : 'مجاناً'}</span>
             </div>
             <div className="text-slate-300">المدة: {p.durationDays} يوم</div>
+            <div className="text-emerald-200 font-bold">{(p.subjectKeys || []).map(k => ({ biology: 'الأحياء', geology: 'الجيولوجيا', integrated_science: 'العلوم المتكاملة' }[k])).join(' + ') || 'محتوى الباقة'}</div>
             <div className="text-slate-400">{p.lessonCount} محاضرة · {p.examCount} امتحان{p.includesAi ? ' · المدرس الذكي' : ''}</div>
             {student && mineHere && p.price > 0 && (
               <button onClick={() => setPayPlan(p)} className="mt-1.5 w-full py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs">اشترك الآن · تحويل فودافون كاش / إنستا باي</button>
@@ -195,7 +197,7 @@ export const SubscriptionsView: React.FC<Props> = ({ currentStudent, onOpenLogin
         {plans === undefined && <div className="text-center text-slate-400 text-sm flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> جاري التحميل…</div>}
         {plans === null && <div className="text-center text-red-300 text-sm mb-4">تعذر تحميل الباقات الآن. حاول مرة أخرى.</div>}
         {plans !== undefined && (
-          <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
+          <div className="relative grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 sm:gap-6">
             {GRADES.map(g => (
               <GradeColumn key={g.id} g={g} plans={(plans || []).filter(p => !p.grade || p.grade === g.id)} mine={mine} student={currentStudent}
                 onOpenLoginModal={onOpenLoginModal} onChanged={() => { load(); onChanged(); }} />
