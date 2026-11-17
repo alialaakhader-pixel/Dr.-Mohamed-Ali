@@ -460,7 +460,7 @@ function mapAccount(a: any): Account {
 function mapExam(e: any): Exam {
   return {
     id: e.id, title: e.title, grade: e.grade as GradeType, durationMin: e.duration_min,
-    questions: e.questions || [], createdAt: e.created_at
+    questions: e.questions || [], createdAt: e.created_at, lessonId: e.lesson_id || null, locked: !!e.locked
   };
 }
 
@@ -519,7 +519,7 @@ export async function teacherSaveExam(exam: Exam) {
     method: 'POST',
     body: {
       id: exam.id, grade: exam.grade, title: exam.title, duration_min: exam.durationMin,
-      questions: exam.questions, published: true
+      questions: exam.questions, published: true, lesson_id: exam.lessonId || null
     },
     headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }
   });
@@ -643,7 +643,7 @@ export async function teacherAssignments(): Promise<TeacherAssignment[]> {
 
 export async function teacherSaveAssignment(a: { id?: string | null; grade: string; title: string; body: string; dueAt: string | null; published: boolean }) {
   const r = await rpc('ha_teacher_assignment_save', {
-    p_id: a.id || null, p_grade: a.grade, p_title: a.title.trim(), p_body: a.body, p_due: a.dueAt, p_published: a.published
+    p_id: a.id || null, p_grade: a.grade, p_title: a.title.trim(), p_body: a.body, p_due: a.dueAt, p_published: a.published, p_lesson_id: a.lessonId || null
   }, await teacherToken());
   if (!r?.ok) throw new Error(r?.error === 'INVALID_TITLE' ? 'اكتب عنواناً للواجب (حتى 180 حرفاً).' : 'تعذر حفظ الواجب.');
 }
