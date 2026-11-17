@@ -29,7 +29,7 @@ async function compressQuestionImage(file: File): Promise<string> {
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
   const data = canvas.toDataURL('image/jpeg', 0.76);
-  if (data.length > 650_000) throw new Error('الصورة ما زالت كبيرة؛ اختار صورة أصغر.');
+  if (data.length > 260_000) throw new Error('الصورة ما زالت كبيرة؛ اختار صورة أصغر أو قلّل دقتها.');
   return data;
 }
 
