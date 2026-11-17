@@ -110,7 +110,7 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
     mode === 'login'
       ? 'ادخل بإيميلك وكلمة المرور لتفتح محاضراتك وتشوف نتايجك'
       : mode === 'signup'
-        ? 'سجّل بإيميلك، وبعدها هتاخد رقم ID تديه للمهندس محمد علي لتفعيل حسابك'
+        ? 'سجّل بإيميلك، وبعدها هتاخد رقم ID تديه للدكتور محمد علي لتفعيل حسابك'
         : 'أدخل كود الاشتراك المسلم لك من الدكتور محمد علي';
 
   return (
@@ -147,11 +147,12 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
                   المرحلة الدراسية <span className="text-emerald-500">*</span>
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
                     { val: '1ث', label: 'أولى ثانوي' },
                     { val: '2ث', label: 'ثانية ثانوي' },
-                    { val: '3ث', label: 'ثالثة ثانوي' }
+                    { val: '3ث', label: 'ثالثة ثانوي' },
+                    { val: 'بكالوريا', label: 'أولى بكالوريا' }
                   ].map(g => (
                     <button
                       key={g.val}
