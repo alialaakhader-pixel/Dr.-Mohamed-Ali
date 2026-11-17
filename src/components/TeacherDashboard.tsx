@@ -611,7 +611,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>الدروس المرفوعة ({lessons.length})</span>
+          <span>المحاضرات المنشورة ({lessons.length})</span>
         </button>
       </div>
 
@@ -629,7 +629,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
                   <Upload className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-display font-black text-white">إضافة ونشر درس جديد</h2>
+                  <h2 className="text-lg font-display font-black text-white">إضافة ونشر محاضرة جديدة</h2>
                   <p className="text-xs text-slate-400">اكتب اسم المحاضرة والفصل وأضف الفيديو والملحقات. المحاضرات الجديدة تُرتب تلقائياً وتُفتح بالتتابع بعد الواجب والامتحان.</p>
                 </div>
               </div>
