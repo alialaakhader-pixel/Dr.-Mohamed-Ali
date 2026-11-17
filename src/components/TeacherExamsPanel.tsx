@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, ClipboardList, ChevronDown, ChevronUp, RotateCcw, ImagePlus, X } from 'lucide-react';
-import { Exam, ExamQuestion, ExamResultRow, GradeType, StudentUser } from '../types';
+import { Exam, ExamQuestion, ExamResultRow, GradeType, StudentUser, Lesson } from '../types';
 
 interface Props {
   exams: Exam[];
+  lessons: Lesson[];
   results: ExamResultRow[];
   students: StudentUser[];
   onSave: (exam: Exam) => Promise<void>;
@@ -35,10 +36,11 @@ async function compressQuestionImage(file: File): Promise<string> {
 
 const inp = 'w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500';
 
-export const TeacherExamsPanel: React.FC<Props> = ({ exams, results, students, onSave, onDelete, onDeleteResult }) => {
+export const TeacherExamsPanel: React.FC<Props> = ({ exams, lessons, results, students, onSave, onDelete, onDeleteResult }) => {
   const [title, setTitle] = useState('');
   const [grade, setGrade] = useState<GradeType>('3ث');
   const [duration, setDuration] = useState(30);
+  const [lessonId, setLessonId] = useState('');
   const [qs, setQs] = useState<DraftQ[]>([newQ()]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -75,8 +77,8 @@ export const TeacherExamsPanel: React.FC<Props> = ({ exams, results, students, o
     }
     setBusy(true);
     try {
-      await onSave({ id: 'exam-' + Date.now(), title: title.trim(), grade, durationMin: Math.max(1, duration || 30), questions });
-      setTitle(''); setQs([newQ()]);
+      await onSave({ id: 'exam-' + Date.now(), title: title.trim(), grade, durationMin: Math.max(1, duration || 30), questions, lessonId: lessonId || null });
+      setTitle(''); setQs([newQ()]); setLessonId('');
       setMsg('✅ تم نشر الامتحان وظهر لطلبة المرحلة فوراً.');
     } catch (e: any) { setMsg('⚠️ ' + (e?.message || 'تعذر نشر الامتحان')); }
     setBusy(false);
@@ -97,11 +99,15 @@ export const TeacherExamsPanel: React.FC<Props> = ({ exams, results, students, o
         </div>
 
         <input className={inp} placeholder="عنوان الامتحان (مثال: امتحان الباب الأول)" value={title} onChange={e => setTitle(e.target.value)} />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <select className={inp} value={grade} onChange={e => setGrade(e.target.value as GradeType)}>
             <option value="1ث">أولى ثانوي</option>
             <option value="2ث">ثانية ثانوي</option>
             <option value="3ث">ثالثة ثانوي</option>
+          </select>
+          <select className={inp} value={lessonId} onChange={e => setLessonId(e.target.value)}>
+            <option value="">امتحان مستقل (بدون ربط بمحاضرة)</option>
+            {lessons.filter(l => l.grade === grade || grade === '3ث' && l.grade === 'بكالوريا').map(l => <option key={l.id} value={l.id}>{l.chapter} · {l.title}</option>)}
           </select>
           <div className="relative">
             <input type="number" min={1} className={inp} value={duration} onChange={e => setDuration(Number(e.target.value))} />
@@ -183,7 +189,7 @@ export const TeacherExamsPanel: React.FC<Props> = ({ exams, results, students, o
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h4 className="font-bold text-sm text-white">{ex.title}</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{ex.grade} · {ex.questions.length} سؤال · {ex.durationMin} د · {rs.length} طالب سلّم{rs.length ? ` · متوسط ${avg}%` : ''}</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{ex.grade} · {ex.lessonId ? `مرتبط بمحاضرة: ${lessons.find(l => l.id === ex.lessonId)?.title || 'محاضرة'}` : 'امتحان مستقل'} · {ex.questions.length} سؤال · {ex.durationMin} د · {rs.length} طالب سلّم{rs.length ? ` · متوسط ${avg}%` : ''}</p>
                 </div>
                 <button onClick={() => { if (window.confirm('حذف الامتحان مع كل نتائجه؟')) onDelete(ex.id); }} className="text-red-400 hover:text-red-300">
                   <Trash2 className="w-4 h-4" />
