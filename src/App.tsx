@@ -10,6 +10,7 @@ import { StudentLoginModal } from './components/StudentLoginModal';
 import { GlassBiologyBackground } from './components/GlassBiologyBackground';
 import { LivingBiologyLab } from './components/LivingBiologyLab';
 import { GeologyLab } from './components/GeologyLab';
+import { GeologyAtlas } from './components/GeologyAtlas';
 import { ExamsView } from './components/ExamsView';
 import { LearningCenterView } from './components/LearningCenterView';
 import { SubscriptionsView } from './components/SubscriptionsView';
@@ -528,7 +529,7 @@ export default function App() {
         )}
 
         {activeTab === 'lab' && !blocked && <LivingBiologyLab />}
-        {activeTab === 'geology' && !blocked && <GeologyLab />}
+        {activeTab === 'geology' && !blocked && <><GeologyLab /><GeologyAtlas /></>}
 
         {activeTab === 'exams' && !blocked && (
           <ExamsView
