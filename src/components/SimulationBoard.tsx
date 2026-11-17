@@ -35,7 +35,7 @@ const Chart: React.FC<{ law: LessonLaw; values: Record<string, number> }> = ({ l
   const cur = evalLaw(law, values);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="رسم بياني للعلاقة">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="رسم بياني للعلاقة الحيوية">
       <line x1={P} y1={H - P} x2={W - P} y2={H - P} stroke="#475569" />
       <line x1={P} y1={P} x2={P} y2={H - P} stroke="#475569" />
       <path d={d} fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" />
@@ -60,7 +60,7 @@ export const SimulationBoard: React.FC<Props> = ({ lesson, onBack }) => {
   const backBtn = (
     <button type="button" onClick={onBack}
       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs hover:bg-emerald-400 transition">
-      <ArrowRight className="w-4 h-4" /> العودة للبث
+      <ArrowRight className="w-4 h-4" /> العودة للمحاضرة
     </button>
   );
 
@@ -71,7 +71,7 @@ export const SimulationBoard: React.FC<Props> = ({ lesson, onBack }) => {
         <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center">
           <FlaskConical className="w-7 h-7" />
         </div>
-        <h3 className="text-lg font-display font-black text-white">سبورة المحاكاة</h3>
+        <h3 className="text-lg font-display font-black text-white">مختبر العلاقات الحيوية</h3>
         <p className="text-xs text-slate-300 max-w-sm leading-relaxed">
           لم يضف الدكتور محمد علي نموذجاً تفاعلياً لهذا الدرس بعد. عند إضافة علاقة أحيائية موثقة ستظهر متغيراتها هنا للتحكم فيها.
         </p>
@@ -93,7 +93,7 @@ export const SimulationBoard: React.FC<Props> = ({ lesson, onBack }) => {
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <FlaskConical className="w-5 h-5 text-emerald-400" />
-          <h3 className="font-display font-black text-sm sm:text-base">النموذج التفاعلي — {lesson?.title}</h3>
+          <h3 className="font-display font-black text-sm sm:text-base">النموذج الحيوي التفاعلي — {lesson?.title}</h3>
         </div>
         <div className="flex gap-2">
           <button type="button" onClick={() => setValues(initialValues(law))}
