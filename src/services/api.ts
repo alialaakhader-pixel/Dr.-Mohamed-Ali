@@ -719,7 +719,7 @@ const SUB_ERRORS: Record<string, string> = {
   PLAN_UNAVAILABLE: 'هذه الباقة غير متاحة حالياً.',
   WRONG_GRADE: 'هذه الباقة مخصصة لصف دراسي آخر.',
   UNAUTHORIZED: 'سجّل دخولك أولاً.',
-  STUDENT_NOT_FOUND: 'كود الطالب غير موجود.',
+  STUDENT_NOT_FOUND: 'لم يتم العثور على حساب طالب نشط بهذا الـ ID. راجع الرقم وحالة الحساب.',
   NOT_FOUND: 'العنصر غير موجود.',
   INVALID: 'بيانات غير صالحة.',
   WRONG_SUBJECT: 'هذه الباقة لا تشمل مادة الصف الدراسي للطالب.',
