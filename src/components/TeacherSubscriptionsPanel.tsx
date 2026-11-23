@@ -150,8 +150,8 @@ export const TeacherSubscriptionsPanel: React.FC<{ lessons: Lesson[]; exams: Exa
             onSubmit={e => { e.preventDefault(); run(async () => { await api.teacherGrantSub(grantStudent, grantPlan, grantDays ? Math.floor(Number(grantDays)) : null); setGrantStudent(''); setGrantDays(''); }, 'تم تفعيل/تجديد الاشتراك ✅'); }}
             className="rounded-2xl bg-slate-900 border border-slate-800 p-4 grid sm:grid-cols-4 gap-2 items-end"
           >
-            <div className="sm:col-span-4 text-xs font-bold text-slate-300">تفعيل أو تجديد اشتراك لطالب (التجديد على نفس الباقة بيمدّد التاريخ)</div>
-            <input value={grantStudent} onChange={e => setGrantStudent(e.target.value)} dir="ltr" placeholder="كود الطالب" className={inp} required />
+            <div className="sm:col-span-4 text-xs font-bold text-slate-300">تفعيل أو تجديد اشتراك باستخدام ID الطالب (التجديد على نفس الباقة بيمدّد التاريخ)</div>
+            <div className="space-y-1"><input value={grantStudent} onChange={e => setGrantStudent(e.target.value.replace(/[^0-9]/g, ''))} dir="ltr" inputMode="numeric" placeholder="ID الطالب الرقمي" className={inp} required /><p className="text-[10px] text-slate-500">اكتب رقم ID من بيانات حساب الطالب، وليس كود التفعيل.</p></div>
             <select value={grantPlan} onChange={e => setGrantPlan(e.target.value)} className={inp} required>
               <option value="">اختر الباقة</option>
               {plans.filter(p => p.active).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
