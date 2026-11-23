@@ -203,7 +203,6 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = SUPABASE_URL;
   // The publishable key is public; fall back to the one the browser sent if the env var is not injected.
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || req.headers.get("apikey") || "";
-  if (chain.length === 0) return reply(503, { ok: false, code: "NO_AI_KEY", error: "خدمة المدرس الذكي لم تُفعّل بعد. يلزم ضبط مفتاح الذكاء الاصطناعي في أسرار الخادم." });
   if (!supabaseUrl || !anonKey) return reply(503, { ok: false, code: "NO_SUPABASE_ENV", error: "إعدادات التحقق من الطالب غير مكتملة على الخادم." });
 
   let body: any;
@@ -305,6 +304,50 @@ ${CURRICULUM[gradeRaw] ? "خريطة منهج الصف (للاسترشاد با�
     let usedModel = "";
     let usedProvider = "";
     let parsed: any = null;
+// ELLOOL AI primary text engine. Student authentication, subscription, limits and the existing tutor prompt remain enforced above.
+    if (images.length === 0) {
+      try {
+        const bridge = await fetch("https://ellool-ai-brain.ellool-ai.workers.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Origin": "https://ellool-ai-studio.vercel.app",
+          },
+          body: JSON.stringify({
+            messages,
+            max_tokens: Math.min(spec.maxTokens, 1100),
+            temperature: spec.temp,
+          }),
+        });
+        if (bridge.ok) {
+          const rawStream = await bridge.text();
+          let collected = "";
+          for (const line of rawStream.split(/\r?\n/)) {
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload || payload === "[DONE]") continue;
+            try {
+              const event = JSON.parse(payload);
+              const delta = event?.choices?.[0]?.delta?.content ?? event?.choices?.[0]?.message?.content;
+              if (typeof delta === "string") collected += delta;
+            } catch { /* ignore non-JSON SSE lines */ }
+          }
+          if (collected.trim()) {
+            if (!spec.json || (parsed = normalize(mode, extractJson(collected)))) {
+              answer = collected.trim();
+              usedModel = "ELLOOL Llama 3.3 70B (fallback 3.1 8B)";
+              usedProvider = "ELLOOL AI / Cloudflare Workers AI";
+            }
+          }
+        } else {
+          console.error("ellool_bridge_error", bridge.status);
+        }
+      } catch (bridgeError) {
+        console.error("ellool_bridge_unavailable", String(bridgeError).slice(0, 180));
+      }
+    }
+
+    if (!answer) {
     outer:
     for (const prov of chain) {
       for (const model of (images.length > 0 ? prov.vision : prov.models)) {
@@ -331,6 +374,8 @@ ${CURRICULUM[gradeRaw] ? "خريطة منهج الصف (للاسترشاد با�
         if (response.status === 401 || response.status === 402 || response.status === 403 || response.status === 429) break; // key/credit/limit: next provider
         // 400/404 (unknown, retired or non-vision model) or 5xx: try the next model
       }
+    }
+
     }
 
     if (!answer) {
