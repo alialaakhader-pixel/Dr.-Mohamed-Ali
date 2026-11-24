@@ -59,7 +59,7 @@ interface TeacherDashboardProps {
   accounts: Account[];
   exams: Exam[];
   examResults: ExamResultRow[];
-  onGrantAccess: (id: number, days: number, extend: boolean) => Promise<void>;
+  onGrantAccess: (id: number, days: number, extend: boolean, includeAi?: boolean) => Promise<void>;
   onDeleteAccount: (id: number) => Promise<void>;
   onResetDevices: (id: number) => Promise<void>;
   onSetMaxDevices: (id: number, max: number) => Promise<void>;
