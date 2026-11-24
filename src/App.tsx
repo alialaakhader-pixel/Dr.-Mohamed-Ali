@@ -303,8 +303,8 @@ export default function App() {
   };
 
   // teacher: accounts & exams
-  const handleGrantAccess = async (id: number, days: number, extend: boolean) => {
-    await api.teacherGrantAccess(id, days, extend);
+  const handleGrantAccess = async (id: number, days: number, extend: boolean, includeAi?: boolean) => {
+    await api.teacherGrantAccess(id, days, extend, includeAi);
     await loadTeacher();
   };
   const handleResetDevices = async (id: number) => {
