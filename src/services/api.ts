@@ -494,8 +494,8 @@ export async function teacherLoadAll(): Promise<TeacherData> {
   };
 }
 
-export async function teacherGrantAccess(id: number, days: number, extend: boolean) {
-  const r = await rpc('ha_teacher_grant', { p_id: id, p_days: days, p_extend: extend }, await teacherToken());
+export async function teacherGrantAccess(id: number, days: number, extend: boolean, includeAi?: boolean) {
+  const r = await rpc('ha_teacher_grant', { p_id: id, p_days: days, p_extend: extend, p_ai: includeAi ?? null }, await teacherToken());
   if (!r?.ok) throw new Error(r?.error === 'NOT_FOUND' ? 'لا يوجد حساب بهذا الـ ID.' : 'تعذر تحديث الاشتراك.');
   return r.accessUntil as string;
 }
