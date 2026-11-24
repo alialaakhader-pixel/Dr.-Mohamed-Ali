@@ -4,7 +4,7 @@ import { Account } from '../types';
 
 interface Props {
   accounts: Account[];
-  onGrant: (id: number, days: number, extend: boolean) => Promise<void>;
+  onGrant: (id: number, days: number, extend: boolean, includeAi?: boolean) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
   onResetDevices: (id: number) => Promise<void>;
   onSetMaxDevices: (id: number, max: number) => Promise<void>;
@@ -25,6 +25,7 @@ export const TeacherAccountsPanel: React.FC<Props> = ({ accounts, onGrant, onDel
   const [idInput, setIdInput] = useState('');
   const [days, setDays] = useState(30);
   const [extend, setExtend] = useState(true);
+  const [includeAi, setIncludeAi] = useState(false);
   const [search, setSearch] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -50,7 +51,7 @@ export const TeacherAccountsPanel: React.FC<Props> = ({ accounts, onGrant, onDel
     const id = Number(idInput.trim());
     if (!id) { setMsg('⚠️ اكتب رقم الـ ID الصحيح.'); return; }
     if (!days || days < 1) { setMsg('⚠️ اكتب عدد الأيام.'); return; }
-    run(() => onGrant(id, days, extend), `✅ تم فتح المنصة للطالب ${id} لمدة ${days} يوم.`);
+    run(() => onGrant(id, days, extend, includeAi), `✅ تم فتح المنصة للطالب ${id} لمدة ${days} يوم${includeAi ? ' مع تفعيل المدرس الذكي' : ' بدون المدرس الذكي'}.`);
   };
 
   return (
@@ -99,6 +100,11 @@ export const TeacherAccountsPanel: React.FC<Props> = ({ accounts, onGrant, onDel
             {busy ? 'جاري التنفيذ...' : 'فتح المنصة'}
           </button>
         </div>
+
+        <label className="mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-100 cursor-pointer">
+          <input type="checkbox" checked={includeAi} onChange={e => setIncludeAi(e.target.checked)} className="accent-emerald-500" />
+          تفعيل المدرس الذكي لهذا الطالب
+        </label>
 
         <div className="flex flex-wrap gap-2 mt-3">
           {[7, 30, 60, 90, 180, 365].map(d => (
