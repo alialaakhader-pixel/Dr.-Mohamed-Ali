@@ -1078,3 +1078,17 @@ export async function generateAiPoster(prompt: string, referenceImage = ''): Pro
   if (!token) throw new Error('سجّل دخول المدرس أولاً.');
   return http('/functions/v1/ha-image-studio', { method: 'POST', token, body: { prompt, referenceImage } });
 }
+
+ 
+// ELLOOL AI image generation (Cloudflare Workers AI · FLUX.2 Klein 4B).
+const ELLOOL_IMAGE_ENDPOINT = 'https://ellool-ai-brain.ellool-ai.workers.dev/v1/images/generations';
+export async function generateElloolImage(prompt: string, width: number, height: number, imageData = ''): Promise<{image?:string; error?:string; model?:string}> {
+  const response = await fetch(ELLOOL_IMAGE_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt.slice(0, 2048), width, height, imageData })
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.error?.message || 'تعذر إنشاء الصورة. حاول مرة أخرى.');
+  return data || {};
+}
