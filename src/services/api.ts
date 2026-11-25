@@ -197,7 +197,8 @@ export async function startGoogleStudentSignup(name: string, phone: string, grad
       provider: 'google',
       redirect_to: redirectTo,
       code_challenge: challenge,
-      code_challenge_method: 's256'
+      code_challenge_method: 's256',
+      apikey: ANON_KEY
     });
     window.location.assign(SUPABASE_URL + '/auth/v1/authorize?' + params.toString());
     return {ok:true};
