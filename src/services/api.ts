@@ -175,7 +175,7 @@ const GOOGLE_VERIFIER_KEY = 'ehyaa_google_pkce_verifier_v1';
 function base64Url(bytes: Uint8Array): string {
   let binary = '';
   bytes.forEach(b => { binary += String.fromCharCode(b); });
-  return btoa(binary).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/g, '');
 }
 
 async function createGooglePkce(): Promise<{verifier:string;challenge:string}> {
