@@ -170,39 +170,81 @@ function toMe(r: any): AccountMe {
 }
 
 const GOOGLE_PROFILE_KEY = 'ehyaa_google_student_profile_v1';
+const GOOGLE_VERIFIER_KEY = 'ehyaa_google_pkce_verifier_v1';
+
+function base64Url(bytes: Uint8Array): string {
+  let binary = '';
+  bytes.forEach(b => { binary += String.fromCharCode(b); });
+  return btoa(binary).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/g, '');
+}
+
+async function createGooglePkce(): Promise<{verifier:string;challenge:string}> {
+  const random = new Uint8Array(32);
+  crypto.getRandomValues(random);
+  const verifier = base64Url(random);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
+  return { verifier, challenge: base64Url(new Uint8Array(digest)) };
+}
 
 export async function startGoogleStudentSignup(name: string, phone: string, grade: GradeType): Promise<{ok:boolean;error?:string}> {
   try {
-    localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify({name, phone, grade}));
-    const redirectTo = 'https://dr-mohamed-ali.vercel.app/';
-    const url = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo) + '&apikey=' + encodeURIComponent(ANON_KEY);
     if (!SUPABASE_URL || !ANON_KEY) return {ok:false,error:'إعدادات Supabase غير مكتملة.'};
-    window.location.assign(url);
+    localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify({name, phone, grade}));
+    const {verifier, challenge} = await createGooglePkce();
+    localStorage.setItem(GOOGLE_VERIFIER_KEY, verifier);
+    const redirectTo = 'https://dr-mohamed-ali.vercel.app/';
+    const params = new URLSearchParams({
+      provider: 'google',
+      redirect_to: redirectTo,
+      code_challenge: challenge,
+      code_challenge_method: 's256'
+    });
+    window.location.assign(SUPABASE_URL + '/auth/v1/authorize?' + params.toString());
     return {ok:true};
-  } catch { return {ok:false,error:'تعذر بدء تسجيل Google.'}; }
+  } catch { return {ok:false,error:'تعذر بدء تسجيل Google. تأكد من اتصال الإنترنت.'}; }
 }
 
 export async function completeGoogleStudentSignup(): Promise<boolean> {
+  const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-  const accessToken = hash.get('access_token');
-  const refreshToken = hash.get('refresh_token');
-  if (!accessToken || !refreshToken) return false;
+  let accessToken = hash.get('access_token');
+  let refreshToken = hash.get('refresh_token');
   try {
-    writeAcc({access_token:accessToken,refresh_token:refreshToken,expires_in:Number(hash.get('expires_in') || 3600)});
-    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    const authCode = query.get('code');
+    if (authCode) {
+      const verifier = localStorage.getItem(GOOGLE_VERIFIER_KEY);
+      if (!verifier) throw new Error('انتهت محاولة تسجيل Google. ارجع واختر Google مرة أخرى.');
+      const session = await http('/auth/v1/token?grant_type=pkce', {
+        method: 'POST',
+        body: { auth_code: authCode, code_verifier: verifier }
+      });
+      accessToken = session.access_token;
+      refreshToken = session.refresh_token;
+      writeAcc(session);
+    } else if (accessToken && refreshToken) {
+      writeAcc({access_token:accessToken,refresh_token:refreshToken,expires_in:Number(hash.get('expires_in') || 3600)});
+    } else {
+      const authError = query.get('error_description') || query.get('error');
+      if (authError) throw new Error('تعذر تسجيل Google: ' + authError);
+      return false;
+    }
+    window.history.replaceState({}, document.title, window.location.pathname);
+    localStorage.removeItem(GOOGLE_VERIFIER_KEY);
+    if (!accessToken || !refreshToken) throw new Error('Google لم يُرجع بيانات الجلسة كاملة.');
     const existing = await rpc('ha_acc_me', {p_device:getDeviceId()}, accessToken);
     if (!existing?.ok) {
       const raw = localStorage.getItem(GOOGLE_PROFILE_KEY);
-      if (!raw) { clearAccountSession(); throw new Error('أكمل بيانات الطالب من تبويب حساب جديد ثم اختر Google.'); }
+      if (!raw) throw new Error('بيانات التسجيل غير موجودة. ارجع واختر إنشاء حساب جديد ثم Google.');
       const profile = JSON.parse(raw);
       const created = await rpc('ha_google_signup', {p_name:profile.name,p_phone:profile.phone,p_grade:profile.grade,p_device:getDeviceId()}, accessToken);
-      if (!created?.ok) { clearAccountSession(); throw new Error(ACC_ERRORS[created?.error] || 'تعذر إنشاء ملف الطالب.'); }
+      if (!created?.ok) throw new Error(ACC_ERRORS[created?.error] || 'تعذر إنشاء ملف الطالب.');
     }
     localStorage.removeItem(GOOGLE_PROFILE_KEY);
     return true;
   } catch (e:any) {
     localStorage.setItem('ehyaa_google_auth_error', String(e?.message || 'تعذر إكمال تسجيل Google'));
     clearAccountSession();
+    localStorage.removeItem(GOOGLE_VERIFIER_KEY);
     return false;
   }
 }
