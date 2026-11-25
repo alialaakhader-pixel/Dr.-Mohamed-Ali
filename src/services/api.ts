@@ -174,7 +174,7 @@ const GOOGLE_PROFILE_KEY = 'ehyaa_google_student_profile_v1';
 export async function startGoogleStudentSignup(name: string, phone: string, grade: GradeType): Promise<{ok:boolean;error?:string}> {
   try {
     localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify({name, phone, grade}));
-    const redirectTo = window.location.origin + window.location.pathname;
+    const redirectTo = 'https://dr-mohamed-ali.vercel.app/';
     const url = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo) + '&apikey=' + encodeURIComponent(ANON_KEY);
     if (!SUPABASE_URL || !ANON_KEY) return {ok:false,error:'إعدادات Supabase غير مكتملة.'};
     window.location.assign(url);
