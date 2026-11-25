@@ -169,6 +169,44 @@ function toMe(r: any): AccountMe {
   };
 }
 
+const GOOGLE_PROFILE_KEY = 'ehyaa_google_student_profile_v1';
+
+export async function startGoogleStudentSignup(name: string, phone: string, grade: GradeType): Promise<{ok:boolean;error?:string}> {
+  try {
+    localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify({name, phone, grade}));
+    const redirectTo = window.location.origin + window.location.pathname;
+    const url = SUPABASE_URL + '/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(redirectTo);
+    if (!SUPABASE_URL || !ANON_KEY) return {ok:false,error:'إعدادات Supabase غير مكتملة.'};
+    window.location.assign(url);
+    return {ok:true};
+  } catch { return {ok:false,error:'تعذر بدء تسجيل Google.'}; }
+}
+
+export async function completeGoogleStudentSignup(): Promise<boolean> {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const accessToken = hash.get('access_token');
+  const refreshToken = hash.get('refresh_token');
+  if (!accessToken || !refreshToken) return false;
+  try {
+    writeAcc({access_token:accessToken,refresh_token:refreshToken,expires_in:Number(hash.get('expires_in') || 3600)});
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    const existing = await rpc('ha_acc_me', {p_device:getDeviceId()}, accessToken);
+    if (!existing?.ok) {
+      const raw = localStorage.getItem(GOOGLE_PROFILE_KEY);
+      if (!raw) { clearAccountSession(); throw new Error('أكمل بيانات الطالب من تبويب حساب جديد ثم اختر Google.'); }
+      const profile = JSON.parse(raw);
+      const created = await rpc('ha_google_signup', {p_name:profile.name,p_phone:profile.phone,p_grade:profile.grade,p_device:getDeviceId()}, accessToken);
+      if (!created?.ok) { clearAccountSession(); throw new Error(ACC_ERRORS[created?.error] || 'تعذر إنشاء ملف الطالب.'); }
+    }
+    localStorage.removeItem(GOOGLE_PROFILE_KEY);
+    return true;
+  } catch (e:any) {
+    localStorage.setItem('ehyaa_google_auth_error', String(e?.message || 'تعذر إكمال تسجيل Google'));
+    clearAccountSession();
+    return false;
+  }
+}
+
 export async function accountMe(): Promise<AccountMe | null> {
   const t = await accToken();
   if (!t) return null;
