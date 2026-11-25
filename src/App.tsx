@@ -482,7 +482,7 @@ export default function App() {
   };
 
   const blocked = !!currentStudent && !!accountInfo && !accountInfo.hasAccess && !isTeacherAuth;
-  const gatedTabs = ['lessons', 'forum', 'exams', 'dashboard', 'learn', 'lab', 'geology'];
+  const gatedTabs = ['lessons', 'forum', 'exams', 'learn', 'lab', 'geology'];
 
   const activeLesson = lessons.find(l => l.id === selectedLessonId) || (lessons.length > 0 ? lessons[0] : null);
 
