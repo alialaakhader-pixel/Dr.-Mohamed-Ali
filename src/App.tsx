@@ -139,7 +139,7 @@ export default function App() {
             localStorage.removeItem('ehyaa_google_auth_error');
           }
         }
-        if (await api.teacherSessionValid()) {
+        if (!googleCompleted && await api.teacherSessionValid()) {
           setIsTeacherAuth(true);
           await loadTeacher();
         } else {
