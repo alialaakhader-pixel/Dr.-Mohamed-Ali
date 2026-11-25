@@ -8,6 +8,7 @@ interface StudentLoginModalProps {
   onAttemptLogin: (name: string, phone: string, grade: GradeType, code: string) => Promise<{ ok: boolean; error?: string }>;
   onAccountLogin: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   onAccountSignup: (email: string, password: string, name: string, phone: string, grade: GradeType) => Promise<{ ok: boolean; error?: string }>;
+  onGoogleSignup: (name: string, phone: string, grade: GradeType) => Promise<{ ok: boolean; error?: string }>;
 }
 
 type Mode = 'login' | 'signup' | 'code';
@@ -20,7 +21,8 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
   onClose,
   onAttemptLogin,
   onAccountLogin,
-  onAccountSignup
+  onAccountSignup,
+  onGoogleSignup
 }) => {
   const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
@@ -294,6 +296,28 @@ export const StudentLoginModal: React.FC<StudentLoginModalProps> = ({
                 : mode === 'signup'
                   ? 'إنشاء الحساب 🚀'
                   : 'تأكيد الدخول وعرض المحاضرات 🚀'}
+          </button>
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-700" /></div>
+            <div className="relative flex justify-center"><span className="bg-slate-900 px-3 text-[11px] text-slate-500">أو</span></div>
+          </div>
+          <button
+            type="button"
+            disabled={loading || success}
+            onClick={async () => {
+              setError('');
+              if (mode === 'signup' && (!name.trim() || name.trim().length < 3 || phone.trim().length < 10)) {
+                setError('اكتب اسمك ورقم هاتف صحيح واختر مرحلتك قبل المتابعة بجوجل.');
+                return;
+              }
+              setLoading(true);
+              const r = await onGoogleSignup(name.trim(), phone.trim(), grade);
+              if (!r.ok) { setLoading(false); setError(r.error || 'تعذر بدء التسجيل بجوجل.'); }
+            }}
+            className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-slate-800 font-bold py-3 rounded-xl text-sm transition disabled:opacity-50"
+          >
+            <span className="text-lg font-black">G</span>
+            المتابعة باستخدام Google
           </button>
         </form>
       </div>
