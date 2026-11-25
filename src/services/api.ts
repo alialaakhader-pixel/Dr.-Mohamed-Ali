@@ -189,20 +189,29 @@ async function createGooglePkce(): Promise<{verifier:string;challenge:string}> {
 export async function startGoogleStudentSignup(name: string, phone: string, grade: GradeType): Promise<{ok:boolean;error?:string}> {
   try {
     if (!SUPABASE_URL || !ANON_KEY) return {ok:false,error:'إعدادات Supabase غير مكتملة.'};
-    localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify({name, phone, grade}));
-    const {verifier, challenge} = await createGooglePkce();
-    localStorage.setItem(GOOGLE_VERIFIER_KEY, verifier);
+    try { localStorage.setItem(GOOGLE_PROFILE_KEY, JSON.stringify({name, phone, grade})); } catch {}
     const redirectTo = 'https://dr-mohamed-ali.vercel.app/';
     const params = new URLSearchParams({
       provider: 'google',
       redirect_to: redirectTo,
-      code_challenge: challenge,
-      code_challenge_method: 's256',
       apikey: ANON_KEY
     });
+    // Use PKCE when Web Crypto is available; otherwise allow Supabase's implicit callback.
+    if (globalThis.crypto?.getRandomValues && globalThis.crypto?.subtle) {
+      try {
+        const {verifier, challenge} = await createGooglePkce();
+        localStorage.setItem(GOOGLE_VERIFIER_KEY, verifier);
+        params.set('code_challenge', challenge);
+        params.set('code_challenge_method', 's256');
+      } catch {
+        try { localStorage.removeItem(GOOGLE_VERIFIER_KEY); } catch {}
+      }
+    }
     window.location.assign(SUPABASE_URL + '/auth/v1/authorize?' + params.toString());
     return {ok:true};
-  } catch { return {ok:false,error:'تعذر بدء تسجيل Google. تأكد من اتصال الإنترنت.'}; }
+  } catch (e:any) {
+    return {ok:false,error:'تعذر فتح تسجيل Google: ' + String(e?.message || 'تحقق من المتصفح والاتصال بالإنترنت')};
+  }
 }
 
 export async function completeGoogleStudentSignup(): Promise<boolean> {
