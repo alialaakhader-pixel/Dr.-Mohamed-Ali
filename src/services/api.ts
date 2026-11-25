@@ -242,9 +242,13 @@ export async function completeGoogleStudentSignup(): Promise<boolean> {
     localStorage.removeItem(GOOGLE_VERIFIER_KEY);
     if (!accessToken || !refreshToken) throw new Error('Google لم يُرجع بيانات الجلسة كاملة.');
     const existing = await rpc('ha_acc_me', {p_device:getDeviceId()}, accessToken);
+    if (!existing?.ok && existing?.error && existing.error !== 'NO_ACCOUNT') {
+      // الحساب موجود لكن فيه مشكلة (مثلاً حد الأجهزة) — لا تحاول إنشاء حساب جديد
+      throw new Error(ACC_ERRORS[existing.error] || 'تعذر تسجيل الدخول بحساب Google.');
+    }
     if (!existing?.ok) {
       const raw = localStorage.getItem(GOOGLE_PROFILE_KEY);
-      if (!raw) throw new Error('بيانات التسجيل غير موجودة. ارجع واختر إنشاء حساب جديد ثم Google.');
+      if (!raw) throw new Error('الإيميل ده مش مسجّل كطالب. اختر "إنشاء حساب جديد" واكتب بياناتك ثم اضغط Google.');
       const profile = JSON.parse(raw);
       const created = await rpc('ha_google_signup', {p_name:profile.name,p_phone:profile.phone,p_grade:profile.grade,p_device:getDeviceId()}, accessToken);
       if (!created?.ok) throw new Error(ACC_ERRORS[created?.error] || 'تعذر إنشاء ملف الطالب.');
