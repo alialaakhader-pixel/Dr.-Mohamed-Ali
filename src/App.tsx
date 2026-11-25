@@ -147,7 +147,15 @@ export default function App() {
           if (me && alive) {
             setCurrentStudent(api.buildAccountStudent(me));
             setAccountInfo({ id: me.id, email: me.email, accessUntil: me.accessUntil, hasAccess: me.hasAccess });
+            setActiveTab('dashboard');
             if (me.hasAccess) await loadStudent(me.code, me.grade);
+            else {
+              setLessons([]);
+              setExams([]);
+              setExamResults([]);
+              setForumPosts([]);
+              setLiveToast(`أهلاً ${me.name}! تم تسجيل دخولك بحساب Google بنجاح. لتفعيل المحاضرات، أرسل رقم الطالب (${me.id}) للدكتور محمد علي.`);
+            }
           } else {
             const restored = await api.studentRestore();
             if (restored && alive) {
