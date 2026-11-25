@@ -131,6 +131,7 @@ export default function App() {
     let alive = true;
     (async () => {
       try {
+        await api.completeGoogleStudentSignup();
         if (await api.teacherSessionValid()) {
           setIsTeacherAuth(true);
           await loadTeacher();
@@ -287,6 +288,10 @@ export default function App() {
     if (!r.ok) return { ok: false as const, error: (r as any).error as string };
     await enterAccount(r.me);
     return { ok: true as const };
+  };
+
+  const handleGoogleSignup = async (name: string, phone: string, grade: GradeType) => {
+    return api.startGoogleStudentSignup(name, phone, grade);
   };
 
   const handleExamSubmit = async (examId: string, answers: (number | null)[]) => {
@@ -658,6 +663,7 @@ export default function App() {
         onAttemptLogin={handleStudentAttempt}
         onAccountLogin={handleAccountLogin}
         onAccountSignup={handleAccountSignup}
+        onGoogleSignup={handleGoogleSignup}
       />
 
       {/* Footer */}
