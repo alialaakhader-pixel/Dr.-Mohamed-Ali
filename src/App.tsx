@@ -131,7 +131,14 @@ export default function App() {
     let alive = true;
     (async () => {
       try {
-        await api.completeGoogleStudentSignup();
+        const googleCompleted = await api.completeGoogleStudentSignup();
+        if (!googleCompleted) {
+          const googleError = localStorage.getItem('ehyaa_google_auth_error');
+          if (googleError) {
+            setLiveToast(googleError);
+            localStorage.removeItem('ehyaa_google_auth_error');
+          }
+        }
         if (await api.teacherSessionValid()) {
           setIsTeacherAuth(true);
           await loadTeacher();
