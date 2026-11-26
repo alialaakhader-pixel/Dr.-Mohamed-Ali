@@ -215,6 +215,7 @@ export async function startGoogleStudentSignup(name: string, phone: string, grad
 }
 
 export async function completeGoogleStudentSignup(): Promise<boolean> {
+  let preserveGoogleAccountSession = false;
   const query = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
   let accessToken = hash.get('access_token');
@@ -243,7 +244,9 @@ export async function completeGoogleStudentSignup(): Promise<boolean> {
     if (!accessToken || !refreshToken) throw new Error('Google لم يُرجع بيانات الجلسة كاملة.');
     const existing = await rpc('ha_acc_me', {p_device:getDeviceId()}, accessToken);
     if (!existing?.ok && existing?.error && existing.error !== 'NO_ACCOUNT') {
-      // الحساب موجود لكن فيه مشكلة (مثلاً حد الأجهزة) — لا تحاول إنشاء حساب جديد
+      // الحساب موجود لكن فيه مشكلة — لا تحاول إنشاء حساب جديد.
+      // احتفظ بجلسة Google عند حد الأجهزة حتى يستطيع الطالب المحاولة بعد أن يعيد المدرس ضبط الأجهزة.
+      preserveGoogleAccountSession = existing.error === 'DEVICE_LIMIT';
       throw new Error(ACC_ERRORS[existing.error] || 'تعذر تسجيل الدخول بحساب Google.');
     }
     if (!existing?.ok) {
@@ -257,7 +260,7 @@ export async function completeGoogleStudentSignup(): Promise<boolean> {
     return true;
   } catch (e:any) {
     localStorage.setItem('ehyaa_google_auth_error', String(e?.message || 'تعذر إكمال تسجيل Google'));
-    clearAccountSession();
+    if (!preserveGoogleAccountSession) clearAccountSession();
     localStorage.removeItem(GOOGLE_VERIFIER_KEY);
     return false;
   }
@@ -268,7 +271,7 @@ export async function accountMe(): Promise<AccountMe | null> {
   if (!t) return null;
   try {
     const r = await rpc('ha_acc_me', { p_device: getDeviceId() }, t);
-    if (!r?.ok && r?.error === 'DEVICE_LIMIT') clearAccountSession();
+    // لا تمسح جلسة الطالب بسبب حد الأجهزة؛ يمكنه إعادة المحاولة بعد ضبط الأجهزة من المدرس.
     return r?.ok ? toMe(r) : null;
   } catch { return null; }
 }
